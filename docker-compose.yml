@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+
+  database:
+    container_name: postgres_smb
+    image: 'bitnami/postgresql'
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRESQL_USERNAME=docker
+      - POSTGRESQL_PASSWORD=docker
+      - POSTGRESQL_DATABASE=app    
+
+  # mongo:
+  #   container_name: mongoAFO
+  #   image: mongo
+  #   restart: always
+  #   ports:
+  #     - 27017:27017
+
+  # app:
+  #   build: .
+  #   container_name: api
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./api:/usr/app
+  #   depends_on:
+  #     - mongo
