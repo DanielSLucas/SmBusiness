@@ -8,7 +8,6 @@ import {
 } from './dtos/create-movement.dto';
 import { FindAllMovementsDto } from './dtos/find-all-movement.dto';
 import { UpdateMovementDto } from './dtos/update-movement.dto';
-import { MovementType } from './entities/movement.entity';
 
 @Injectable()
 export class MovementsService {
@@ -30,10 +29,6 @@ export class MovementsService {
 
   async createOne(authUserId: string, data: CreateMovementDto) {
     const { tags, ...createMovementDto } = data;
-    const amount =
-      createMovementDto.type === MovementType.INCOME
-        ? createMovementDto.amount
-        : createMovementDto.amount * -1;
     const date = new Date(createMovementDto.date);
 
     const upsertedTags = await Promise.all(
@@ -44,7 +39,7 @@ export class MovementsService {
       data: {
         ...createMovementDto,
         date,
-        amount: new Prisma.Decimal(amount),
+        amount: new Prisma.Decimal(createMovementDto.amount),
         authUserId,
         tags: {
           createMany: {
@@ -72,14 +67,12 @@ export class MovementsService {
     );
 
     const createMovementDtos = data.map((dto, i) => {
-      const amount =
-        dto.type === MovementType.INCOME ? dto.amount : dto.amount * -1;
       const date = new Date(dto.date);
 
       return {
         ...dto,
         date,
-        amount: new Prisma.Decimal(amount),
+        amount: new Prisma.Decimal(dto.amount),
         authUserId,
         tags: {
           createMany: {
@@ -104,7 +97,8 @@ export class MovementsService {
   }
 
   findAll(authUserId: string, options?: Partial<FindAllMovementsDto>) {
-    const { page, date, description, startDate, endDate, orderBy } = options;
+    const { page, date, description, startDate, endDate, orderBy, tags } =
+      options;
 
     const where = { authUserId };
 
@@ -143,6 +137,16 @@ export class MovementsService {
       Object.assign(otherOptions, {
         take: perPage,
         skip: perPage * (page - 1),
+      });
+    }
+
+    if (tags) {
+      Object.assign(where, {
+        tags: {
+          some: {
+            OR: tags.split(';').map((tag) => ({ tag: { name: tag } })),
+          },
+        },
       });
     }
 
@@ -214,8 +218,8 @@ export class MovementsService {
     return this.prisma.$queryRaw`
       SELECT         
         sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
-        sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE 0 END) as "outcome",
-        sum(mv.amount) "total"
+        sum(CASE WHEN mv.type = 'OUTCOME' THEN mv.amount ELSE 0 END) as "outcome",
+        sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE mv.amount END) "total"
       FROM movements mv 
       WHERE auth_user_id = ${authUserId}      
     `;
@@ -227,8 +231,8 @@ export class MovementsService {
         extract(month from mv.date) as "month",
         tg.name as "tag",
         sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
-        sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE 0 END) as "outcome",
-        sum(mv.amount) "total"
+        sum(CASE WHEN mv.type = 'OUTCOME' THEN mv.amount ELSE 0 END) as "outcome",
+        sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE mv.amount END) "total"
       FROM movements mv 
       INNER JOIN movements_tags mvtg ON mvtg.movement_id=mv.id
       INNER JOIN tags tg ON tg.id=mvtg.tag_id

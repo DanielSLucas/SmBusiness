@@ -19,6 +19,15 @@ export class TagsService {
     return this.prisma.tag.findMany();
   }
 
+  findAllNames() {
+    return this.prisma.tag.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
   findOne(id: string) {
     return this.prisma.tag.findUnique({
       where: {

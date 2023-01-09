@@ -25,6 +25,11 @@ export class TagsController {
     return this.tagsService.findAll();
   }
 
+  @Get('names')
+  findAllNames() {
+    return this.tagsService.findAllNames();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tagsService.findOne(id);
