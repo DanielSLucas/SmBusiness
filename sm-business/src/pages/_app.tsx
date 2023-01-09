@@ -9,14 +9,14 @@ export default function App({
   Component, 
   pageProps: { session, ...pageProps },
 }: AppProps) {
-  
   return (
     <ChakraProvider theme={theme}>
       <Flex
         flex="1"
         height="100vh"
         width="100vw"
-        direction="column"        
+        direction="column"
+        overflowX="hidden"        
       >
         <SessionProvider session={session}>
           <Component {...pageProps} />

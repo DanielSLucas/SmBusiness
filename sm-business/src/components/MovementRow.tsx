@@ -74,7 +74,8 @@ const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
 
       {/* VALOR */}
       <Td>
-        <Text color={Number(movement.amount) < 0 ? 'red.500': 'green.500'}>
+        <Text color={movement.type === 'OUTCOME' ? 'red.500': 'green.500'}>
+          {movement.type === 'OUTCOME' && '-'}
           {toBRL(movement.amount)}
         </Text>
       </Td>

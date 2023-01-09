@@ -1,10 +1,10 @@
 import { FormControl, FormErrorMessage, FormLabel, Select as ChakraSelect, SelectProps as ChakraSelectProps } from '@chakra-ui/react';
-import { FieldError, FieldValues, UseFormRegister } from 'react-hook-form';
+import { FieldError, UseFormRegister } from 'react-hook-form';
 
 export interface SelectProps extends ChakraSelectProps {
   name: string;
   label?: string;
-  register: UseFormRegister<FieldValues>;  
+  register: UseFormRegister<any>;  
   error?: FieldError;
 }
 

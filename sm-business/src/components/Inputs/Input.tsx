@@ -1,10 +1,10 @@
 import { FormControl, FormErrorMessage, FormLabel, Input as ChakraInput, InputProps as ChakraInputProps } from "@chakra-ui/react";
-import { FieldError, FieldValues, RegisterOptions, UseFormRegister } from "react-hook-form";
+import { FieldError, UseFormRegister } from "react-hook-form";
 
 export interface InputProps extends ChakraInputProps{
   name: string;
   label?: string;
-  register: UseFormRegister<FieldValues>;  
+  register: UseFormRegister<any>;  
   error?: FieldError;
 }
 

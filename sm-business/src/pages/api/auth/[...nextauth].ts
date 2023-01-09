@@ -9,7 +9,7 @@ export default NextAuth({
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
-  callbacks: { 
+  callbacks: {
     async redirect (url) {      
       if(url.url === "/signin") return '/home'
       return '/'
