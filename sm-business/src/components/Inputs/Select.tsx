@@ -17,7 +17,7 @@ export const Select: React.FC<SelectProps> = ({
   ...rest 
 }) => {
   return (
-    <FormControl>
+    <FormControl isInvalid={!!error}>
       {!!label  && <FormLabel htmlFor={name}>{label}</FormLabel>}
 
       <ChakraSelect

@@ -1,8 +1,8 @@
 import { FormControl, Tag, Input as ChakraInput, FormLabel, FormErrorMessage } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Control, FieldError, UseFormRegister, useWatch } from "react-hook-form";
 import { FiPlus } from "react-icons/fi";
-import { FiltersData } from "../../Filters";
+
 import { TagInputContainer } from "./Container";
 import { CustomTag } from "./CustomTag";
 import { Dropdown } from "./Dropdown";
@@ -24,6 +24,7 @@ interface TagInputProps {
   canCreateTags?: boolean;
   tags: Tag[];
   addTag?: (tagName: string) => void;
+  clearErrors?: () => void;
 }
 
 export const TagInput: React.FC<TagInputProps> = ({ 
@@ -38,6 +39,7 @@ export const TagInput: React.FC<TagInputProps> = ({
   tags: allTags,
   addTag,
   control,
+  clearErrors,
 }) => {  
   const [isShowingDropdown, setIsShowingDropdown] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -64,6 +66,8 @@ export const TagInput: React.FC<TagInputProps> = ({
       return tag;
     });
 
+    if (selected) clearErrors?.();
+
     setTags(newTags);
     setValue(newTags.filter(tag => tag.selected).map(tag => tag.name).join(separator));
     setIsShowingDropdown(false);
@@ -87,10 +91,10 @@ export const TagInput: React.FC<TagInputProps> = ({
   }  
 
   return (
-    <FormControl display="flex" position="relative" flexDirection="column">
+    <FormControl isInvalid={!!error} display="flex" position="relative" flexDirection="column">
       {!!label  && <FormLabel htmlFor={name}>{label}</FormLabel>}
 
-      <TagInputContainer>
+      <TagInputContainer isInvalid={!!error}>
         {tags.filter(tag => tag.selected).map(tag => (
           <CustomTag 
             key={`selected_tag_list_${tag.name}`}
@@ -105,6 +109,7 @@ export const TagInput: React.FC<TagInputProps> = ({
         <ChakraInput 
           placeholder="Adicione uma ou mais tags"
           variant="flushed"
+          errorBorderColor="whiteAlpha.300"
           value={tagInput}
           onChange={e => setTagInput(e.target.value)}
           onFocusCapture={() => {

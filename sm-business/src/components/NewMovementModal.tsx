@@ -3,6 +3,9 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as Yup from "yup";
+
 import { api } from "../services/api";
 import { Input } from "./Inputs/Input";
 import { Select } from "./Inputs/Select";
@@ -23,6 +26,17 @@ interface NewMovementFormData {
   tags: string;
 }
 
+const schema = Yup.object({
+  description: Yup.string().required("Descrição é obrigatória"),
+  amount: Yup.number()
+    .typeError("Valor deve ser um número válido")
+    .positive("Valor deve ser um número maior que zero")
+    .required("Valor é obrigatório"),
+  date: Yup.date().typeError("Data deve ser uma data válida").required("Data é obrigatória"),
+  type: Yup.string().oneOf(['INCOME', 'OUTCOME']).required("Tipo é obrigatório"),
+  tags: Yup.string().uppercase().required('Tags são obrigatórias'),
+})
+
 export const NewMovementModal: React.FC<NewMovementModalProps> = ({
   onClose,
   isOpen,
@@ -31,7 +45,17 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
 }) => {
   const router = useRouter();
   const toast = useToast();
-  const { register, handleSubmit, reset, setValue, control } = useForm<NewMovementFormData>();
+  const { 
+    register, 
+    handleSubmit, 
+    reset, 
+    setValue, 
+    control, 
+    formState: { errors },
+    clearErrors,
+  } = useForm<NewMovementFormData>({
+    resolver: yupResolver(schema),
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {    
@@ -81,7 +105,7 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
       setIsLoading(false);
     }
   }
-
+  console.log(errors)
   return (
     <Modal onClose={onClose} isOpen={isOpen} isCentered>
       <ModalOverlay />
@@ -94,7 +118,8 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
               label="Descrição"
               placeholder="Descrição"
               name="description"
-              register={register}        
+              register={register}
+              error={errors.description}
             />
 
             <Input 
@@ -103,7 +128,8 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
               name="amount"
               type="number"
               step="0.01"
-              register={register}        
+              register={register}
+              error={errors.amount}
             />
 
             <Input 
@@ -111,7 +137,8 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
               placeholder="Data"
               name="date"
               type="date"
-              register={register}        
+              register={register}
+              error={errors.date}
             />
 
             <Select
@@ -119,6 +146,7 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
               placeholder='Entrada/Saída'
               name="type"
               register={register}
+              error={errors.type}
             >
               <option value='INCOME'>Entrada</option>
               <option value='OUTCOME'>Saída</option>
@@ -134,6 +162,8 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
               canCreateTags
               tags={tags}
               addTag={addTag}
+              error={errors.tags}
+              clearErrors={() => clearErrors("tags")}
             />
 
             <Button isLoading={isLoading} mt="2" type="submit">
