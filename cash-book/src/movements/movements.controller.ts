@@ -16,6 +16,7 @@ import {
 import { UpdateMovementDto } from './dtos/update-movement.dto';
 import { AuthUser, CurrentUser } from 'src/auth/current-user';
 import { FindAllMovementsDto } from './dtos/find-all-movement.dto';
+import { SummaryOptionsDto } from './dtos/summary-options.dto';
 
 @Controller('movements')
 export class MovementsController {
@@ -30,8 +31,11 @@ export class MovementsController {
   }
 
   @Get('summary')
-  summary(@CurrentUser() user: AuthUser) {
-    return this.movementsService.summary(user.sub);
+  summary(
+    @CurrentUser() user: AuthUser,
+    @Query() summaryOptions: SummaryOptionsDto,
+  ) {
+    return this.movementsService.summary(user.sub, summaryOptions);
   }
 
   @Get('balance')

@@ -7,6 +7,10 @@ import {
   CreateMovementsDto,
 } from './dtos/create-movement.dto';
 import { FindAllMovementsDto } from './dtos/find-all-movement.dto';
+import {
+  MovementsGroupBy,
+  SummaryOptionsDto,
+} from './dtos/summary-options.dto';
 import { UpdateMovementDto } from './dtos/update-movement.dto';
 
 @Injectable()
@@ -225,30 +229,107 @@ export class MovementsService {
     `;
   }
 
-  summary(authUserId: string) {
-    return this.prisma.$queryRaw`
+  summary(authUserId: string, options: SummaryOptionsDto) {
+    const { groupBy, description, date, startDate, endDate, tags } = options;
+
+    let groupByColumnSelect, groupByColumn, orderBy;
+    const joins = [];
+    if (groupBy === MovementsGroupBy.TAGS) {
+      groupByColumn = Prisma.sql`tg.name`;
+      groupByColumnSelect = Prisma.sql`tg.name as "tag"`;
+
+      joins.push(Prisma.sql`INNER JOIN movements_tags mvtg ON mvtg.movement_id=mv.id
+      INNER JOIN tags tg ON tg.id=mvtg.tag_id`);
+
+      orderBy = Prisma.sql`ORDER BY tag ASC`;
+    } else {
+      const monthYear = Prisma.sql`concat(extract(month from mv.date), '/', extract(year from mv.date))`;
+      groupByColumn = monthYear;
+      groupByColumnSelect = Prisma.sql`${monthYear} as "month/year"`;
+
+      joins.push(Prisma.empty);
+
+      orderBy = Prisma.sql`ORDER BY
+      (string_to_array(${monthYear}, '/'))[2]::int ASC,
+      (string_to_array(${monthYear}, '/'))[1]::int ASC `;
+    }
+
+    let descriptionWhere = Prisma.empty;
+    if (description) {
+      const stringContainingDescription = Prisma.sql`'%' || ${description} || '%'`;
+      descriptionWhere = Prisma.sql`AND mv.description ILIKE ${stringContainingDescription}`;
+    }
+
+    let dateWhere = Prisma.empty;
+    if (date) {
+      dateWhere = Prisma.sql`AND mv.date = ${new Date(date)}`;
+    } else if (startDate && endDate) {
+      dateWhere = Prisma.sql`AND mv.date >= ${new Date(
+        startDate,
+      )} AND mv.date <= ${new Date(endDate)}`;
+    } else if (startDate) {
+      dateWhere = Prisma.sql`AND mv.date >= ${new Date(startDate)}`;
+    } else if (endDate) {
+      dateWhere = Prisma.sql`AND mv.date <= ${new Date(endDate)}`;
+    }
+
+    const tagsWhere = [];
+    if (tags) {
+      const tagQueries = tags.split(';');
+
+      const movementTagNames = Prisma.sql`(select array_agg(tg.name) as mv_tags, mvtg.movement_id as mv_id from movements_tags mvtg inner join tags tg on tg.id = mvtg.tag_id group by mv_id)`;
+
+      joins.push(
+        Prisma.sql`\n\tINNER JOIN ${movementTagNames} as mvtgs ON mvtgs.mv_id=mv.id`,
+      );
+
+      for (const tagQuery of tagQueries) {
+        const addTagFilter = (tagNames: string[]) => {
+          const queryConnective = !tagsWhere.length
+            ? Prisma.sql`AND (`
+            : Prisma.sql` OR`;
+
+          tagsWhere.push(
+            Prisma.sql`${queryConnective} mvtgs.mv_tags @> ARRAY[${Prisma.join(
+              tagNames,
+            )}]`,
+          );
+        };
+
+        if (tagQuery.includes('&')) {
+          const tagNames = tagQuery.split('&');
+
+          addTagFilter(tagNames);
+        } else if (tagQuery.includes('|')) {
+          const tagNames = tagQuery.split('|');
+
+          for (const tagName of tagNames) {
+            addTagFilter([tagName]);
+          }
+        } else {
+          const tagName = tagQuery;
+          addTagFilter([tagName]);
+        }
+      }
+      tagsWhere.push(Prisma.sql` )`);
+    }
+
+    const query = Prisma.sql`
       SELECT
-        extract(month from mv.date) as "month",
-        tg.name as "tag",
+        ${groupByColumnSelect},
         sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
         sum(CASE WHEN mv.type = 'OUTCOME' THEN mv.amount ELSE 0 END) as "outcome",
         sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE mv.amount END) "total"
-      FROM movements mv 
-      INNER JOIN movements_tags mvtg ON mvtg.movement_id=mv.id
-      INNER JOIN tags tg ON tg.id=mvtg.tag_id
-      WHERE auth_user_id = ${authUserId}
-      GROUP BY "month", "tag"
+      FROM movements mv
+      ${Prisma.join(joins, '')}
+      WHERE auth_user_id = ${authUserId} ${descriptionWhere} ${dateWhere} ${Prisma.join(
+      tagsWhere,
+      '',
+    )}
+      GROUP BY ${groupByColumn}
+      ${orderBy}
     `;
 
-    return this.prisma.$queryRaw`
-      SELECT 
-        extract(month from mv.date) as "month",
-        sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
-        sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE 0 END) as "outcome",
-        sum(mv.amount) "total"
-      FROM movements mv 
-      WHERE auth_user_id = ${authUserId}
-      GROUP BY "month"
-    `;
+    return this.prisma.$queryRaw(query);
   }
 }
