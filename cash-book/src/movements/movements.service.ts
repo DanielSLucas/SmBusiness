@@ -245,7 +245,7 @@ export class MovementsService {
     } else {
       const monthYear = Prisma.sql`concat(extract(month from mv.date), '/', extract(year from mv.date))`;
       groupByColumn = monthYear;
-      groupByColumnSelect = Prisma.sql`${monthYear} as "month/year"`;
+      groupByColumnSelect = Prisma.sql`${monthYear} as "month"`;
 
       joins.push(Prisma.empty);
 
@@ -321,11 +321,10 @@ export class MovementsService {
         sum(CASE WHEN mv.type = 'OUTCOME' THEN mv.amount ELSE 0 END) as "outcome",
         sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE mv.amount END) "total"
       FROM movements mv
-      ${Prisma.join(joins, '')}
-      WHERE auth_user_id = ${authUserId} ${descriptionWhere} ${dateWhere} ${Prisma.join(
-      tagsWhere,
-      '',
-    )}
+      ${joins.length ? Prisma.join(joins, '') : Prisma.empty}
+      WHERE auth_user_id = ${authUserId} ${descriptionWhere} ${dateWhere} ${
+      tagsWhere.length ? Prisma.join(tagsWhere, '') : Prisma.empty
+    }
       GROUP BY ${groupByColumn}
       ${orderBy}
     `;

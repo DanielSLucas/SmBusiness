@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 
 export enum MovementsGroupBy {
-  MONTH_YEAR = 'month/year',
+  MONTH = 'month',
   TAGS = 'tags',
 }
 
