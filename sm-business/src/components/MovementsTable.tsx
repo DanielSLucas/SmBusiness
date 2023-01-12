@@ -1,4 +1,5 @@
 import { Box, Skeleton, Stack, Table, TableCaption, TableContainer, Tbody, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
+import { CustomTable } from "./CustomTable";
 import MovementRow from "./MovementRow";
 import { NewMovementButton } from "./NewMovementButton";
 import { TableSkeletonRow } from "./TableSkeletonRow";
@@ -52,7 +53,11 @@ export const MovementsTable: React.FC<MovementsTableProps> = ({
                   <MovementRow key={movement.id} movement={movement}/>
                 )) 
               : Array.from({ length: 9 }).map((_, i) => (
-                <TableSkeletonRow key={`skeleton-row-${i}`} />
+                <TableSkeletonRow 
+                  key={`skeleton-row-${i}`}
+                  height="16"
+                  colSpan={6}
+                />
               ))
             }
           </Tbody>

@@ -6,10 +6,12 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from "yup";
 
-import { api } from "../services/api";
+import { api, createMovement } from "../services/api";
 import { Input } from "./Inputs/Input";
 import { Select } from "./Inputs/Select";
 import { Tag, TagInput } from "./Inputs/TagInput";
+import { useMutation } from "react-query";
+import { queryClient } from "../services/queryClient";
 
 interface NewMovementModalProps {
   onClose: () => void;
@@ -18,7 +20,7 @@ interface NewMovementModalProps {
   addTag: (tagName: string) => void;
 }
 
-interface NewMovementFormData {
+export interface NewMovementFormData {
   description: string;
   amount: number;
   date: string;
@@ -45,28 +47,26 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
 }) => {
   const router = useRouter();
   const toast = useToast();
+  const { mutateAsync } = useMutation(createMovement, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('movements')
+    }
+  })
   const { 
     register, 
     handleSubmit, 
     reset, 
     setValue, 
     control, 
-    formState: { errors },
+    formState: { errors, isSubmitting },
     clearErrors,
   } = useForm<NewMovementFormData>({
     resolver: yupResolver(schema),
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  });  
 
   const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {    
-    const newMovementData = {
-      ...data,
-      tags: data.tags.split(';')
-    }
-
     try {
-      setIsLoading(true);
-      await api.post('/movements', newMovementData);
+      await mutateAsync(data)
 
       toast({
         title: "Movimento de caixa criado com sucesso!",
@@ -101,11 +101,9 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
           isClosable: true
         });
       }      
-    } finally {
-      setIsLoading(false);
     }
   }
-  console.log(errors)
+
   return (
     <Modal onClose={onClose} isOpen={isOpen} isCentered>
       <ModalOverlay />
@@ -166,7 +164,7 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
               clearErrors={() => clearErrors("tags")}
             />
 
-            <Button isLoading={isLoading} mt="2" type="submit">
+            <Button isLoading={isSubmitting} mt="2" type="submit">
               Criar
             </Button>
           </Flex>

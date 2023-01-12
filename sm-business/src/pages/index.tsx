@@ -1,20 +1,20 @@
 import { GetServerSideProps } from "next";
-import { getSession, useSession } from "next-auth/react";
-import React, { useEffect, useMemo, useState } from "react";
-import { Flex, Heading, useDisclosure, useToast } from "@chakra-ui/react";
+import { getSession } from "next-auth/react";
+import React, { useMemo, useState } from "react";
+import { Flex, useDisclosure } from "@chakra-ui/react";
 
-import { api } from "../services/api";
+import { api, listMovements } from "../services/api";
 import { Balance } from "../components/Balance";
 import { Header } from "../components/Header";
 import { MovementsTable } from "../components/MovementsTable";
 import { FiltersData, Filters } from "../components/Filters";
-import { AxiosError } from "axios";
-import { useRouter } from "next/router";
 import { NewMovementModal } from "../components/NewMovementModal";
 import { Tag } from "../components/Inputs/TagInput";
-import { useFetch } from "../hooks/useFetch";
+import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
+import { useQuery } from "react-query";
+import { queryClient } from "../services/queryClient";
 
-interface Movement {
+export interface Movement {
   id: number;
   date: string;
   description: string;
@@ -41,15 +41,19 @@ interface HomeProps {
 export default function Home({ tags: allTags }: HomeProps) {
   const { onOpen: onModalOpen, onClose: onModalClose, isOpen: isModalOpen } = useDisclosure();
   const [filters, setFilters] = useState<Partial<FiltersData>>({});
-  const { data: movements, isLoading } = useFetch<Movement[]>('/movements', filters);
+  const { data: movements, isLoading, error } = useQuery(
+    ['movements', filters], listMovements(filters)
+  );
+  useApiErrorToasts(error);
   const [tags, setTags] = useState<Tag[]>(allTags);
 
   function addTag(tagName: string) {
     setTags(prev => [...prev, { name: tagName, selected: false }]);
   }
 
-  async function handleFilter(filters: Partial<FiltersData>) {
-    setFilters(filters);   
+  async function handleFilter(receivedFilters: Partial<FiltersData>) {
+    setFilters(receivedFilters);
+    queryClient.fetchQuery(['movements', receivedFilters], listMovements(receivedFilters));    
   }
 
   const balance = useMemo(() => {
