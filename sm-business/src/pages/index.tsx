@@ -45,11 +45,6 @@ export default function Home({ tags: allTags }: HomeProps) {
     ['movements', filters], listMovements(filters)
   );
   useApiErrorToasts(error);
-  const [tags, setTags] = useState<Tag[]>(allTags);
-
-  function addTag(tagName: string) {
-    setTags(prev => [...prev, { name: tagName, selected: false }]);
-  }
 
   async function handleFilter(receivedFilters: Partial<FiltersData>) {
     setFilters(receivedFilters);
@@ -99,15 +94,10 @@ export default function Home({ tags: allTags }: HomeProps) {
       >
         <Header title="Livro caixa"/>
         <Balance balance={balance} />                
-        <Filters onFilter={handleFilter} tags={tags} isLoading={isLoading} />
+        <Filters onFilter={handleFilter} isLoading={isLoading} />
         <MovementsTable movements={movements || []} onNewMovementButtonClick={onModalOpen}/>
 
-        <NewMovementModal
-          isOpen={isModalOpen} 
-          onClose={onModalClose} 
-          tags={tags}
-          addTag={addTag}
-        /> 
+        <NewMovementModal isOpen={isModalOpen} onClose={onModalClose} />
       </Flex>
     </Flex>
   )

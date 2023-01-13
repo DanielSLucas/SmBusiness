@@ -11,8 +11,8 @@ import {
 } from "@chakra-ui/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FiFilter, FiX } from "react-icons/fi";
+import { useTags } from "../hooks/useTags";
 import { FiltersForm } from "./FiltersForm";
-import { Tag } from "./Inputs/TagInput";
 
 export interface FiltersData {
   orderBy?: 'id' | 'date' | 'description' | 'amount' | 'type';
@@ -25,15 +25,16 @@ export interface FiltersData {
 }
 
 interface FiltersProps {
-  onFilter(filters: Partial<FiltersData>): void;
-  tags: Tag[];
+  onFilter(filters: Partial<FiltersData>): void;  
   isLoading: boolean;
 }
 
-export const Filters: React.FC<FiltersProps> = ({ onFilter, tags, isLoading }) => {
+export const Filters: React.FC<FiltersProps> = ({ onFilter, isLoading }) => {
   const showDrawer = useBreakpointValue({ base: true, lg: false }, { fallback: 'true' });
   const { register, handleSubmit, reset, setValue, control } = useForm<FiltersData>();
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { tags } = useTags();
+
     
   const onSubmit: SubmitHandler<FiltersData> = (data) => {
     const filters = Object.keys(data).reduce((prev, curr) => {

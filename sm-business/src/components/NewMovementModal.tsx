@@ -12,12 +12,11 @@ import { Select } from "./Inputs/Select";
 import { Tag, TagInput } from "./Inputs/TagInput";
 import { useMutation } from "react-query";
 import { queryClient } from "../services/queryClient";
+import { useTags } from "../hooks/useTags";
 
 interface NewMovementModalProps {
   onClose: () => void;
   isOpen: boolean;
-  tags: Tag[];
-  addTag: (tagName: string) => void;
 }
 
 export interface NewMovementFormData {
@@ -42,11 +41,10 @@ const schema = Yup.object({
 export const NewMovementModal: React.FC<NewMovementModalProps> = ({
   onClose,
   isOpen,
-  tags,
-  addTag,
 }) => {
   const router = useRouter();
   const toast = useToast();
+  const { tags, addTag } = useTags();
   const { mutateAsync } = useMutation(createMovement, {
     onSuccess: () => {
       queryClient.invalidateQueries('movements')

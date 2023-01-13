@@ -3,6 +3,7 @@ import { getSession } from "next-auth/react";
 
 import { createMovement } from "./routes/createMovement";
 import { getSummarizedMovements } from "./routes/getSummarizedMovements";
+import { getTags } from "./routes/getTags";
 import { listMovements } from "./routes/listMovements";
 
 function setupApi() {
@@ -32,4 +33,5 @@ export {
   createMovement,
   listMovements,
   getSummarizedMovements,  
+  getTags,
 }

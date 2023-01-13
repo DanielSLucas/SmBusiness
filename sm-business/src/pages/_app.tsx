@@ -3,6 +3,7 @@ import { SessionProvider } from 'next-auth/react';
 import { ChakraProvider, Flex } from '@chakra-ui/react';
 import { QueryClientProvider } from 'react-query';
 
+import { AppProvider } from '../hooks/appProvider';
 import { queryClient } from '../services/queryClient';
 import { theme } from '../styles/theme';
 import '../styles/global.css';
@@ -22,7 +23,9 @@ export default function App({
           overflowX="hidden"        
         >
           <SessionProvider session={session}>
-            <Component {...pageProps} />
+            <AppProvider>
+              <Component {...pageProps} />
+            </AppProvider>
           </SessionProvider>
         </Flex>
       </ChakraProvider>
