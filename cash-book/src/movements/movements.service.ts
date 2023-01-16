@@ -236,22 +236,38 @@ export class MovementsService {
     const joins = [];
     if (groupBy === MovementsGroupBy.TAGS) {
       groupByColumn = Prisma.sql`tg.name`;
-      groupByColumnSelect = Prisma.sql`tg.name as "tag"`;
+      groupByColumnSelect = Prisma.sql`tg.name as "group"`;
 
       joins.push(Prisma.sql`INNER JOIN movements_tags mvtg ON mvtg.movement_id=mv.id
       INNER JOIN tags tg ON tg.id=mvtg.tag_id`);
 
-      orderBy = Prisma.sql`ORDER BY tag ASC`;
+      orderBy = Prisma.sql`ORDER BY "group" ASC`;
     } else {
-      const monthYear = Prisma.sql`concat(extract(month from mv.date), '/', extract(year from mv.date))`;
-      groupByColumn = monthYear;
-      groupByColumnSelect = Prisma.sql`${monthYear} as "month"`;
+      const day = Prisma.sql`extract(day from mv.date)`;
+      const month = Prisma.sql`extract(month from mv.date)`;
+      const year = Prisma.sql`extract(year from mv.date)`;
+
+      groupByColumn = {
+        [MovementsGroupBy.DAY]: Prisma.sql`concat(${day}, '/', ${month}, '/', ${year})`,
+        [MovementsGroupBy.MONTH]: Prisma.sql`concat(${month}, '/', ${year})`,
+        [MovementsGroupBy.YEAR]: year,
+      }[groupBy];
+
+      groupByColumnSelect = Prisma.sql`${groupByColumn} as "group"`;
 
       joins.push(Prisma.empty);
 
-      orderBy = Prisma.sql`ORDER BY
-      (string_to_array(${monthYear}, '/'))[2]::int ASC,
-      (string_to_array(${monthYear}, '/'))[1]::int ASC `;
+      orderBy = {
+        [MovementsGroupBy.DAY]: Prisma.sql`ORDER BY
+          (string_to_array(${groupByColumn}, '/'))[3]::int ASC,
+          (string_to_array(${groupByColumn}, '/'))[2]::int ASC,
+          (string_to_array(${groupByColumn}, '/'))[1]::int ASC`,
+        [MovementsGroupBy.MONTH]: Prisma.sql`ORDER BY
+          (string_to_array(${groupByColumn}, '/'))[2]::int ASC,
+          (string_to_array(${groupByColumn}, '/'))[1]::int ASC`,
+        [MovementsGroupBy.YEAR]: Prisma.sql`ORDER BY 
+          (${groupByColumn})::int ASC`,
+      }[groupBy];
     }
 
     let descriptionWhere = Prisma.empty;
