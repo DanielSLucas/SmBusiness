@@ -34,8 +34,13 @@ export const CustomTable: React.FC<CustomTableProps> = ({ columnsConfig, data, c
   const headColor = useColorModeValue('gray.50', 'gray.900');
 
   return (
-    <TableContainer w="100%" maxH={{ base: "51vh", lg: "57.2vh" }} overflowX="auto" overflowY="scroll">
-      <Table variant="unstyled">
+    <TableContainer 
+      w="100%" 
+      h="100%"      
+      overflowX="auto" 
+      overflowY="scroll"
+    >
+      <Table variant="unstyled" size={{ base: "sm", md: "md" }}>
         {caption && <TableCaption>{caption}</TableCaption>}
 
         <Thead position="sticky" top={0}  zIndex={1} bg={headColor}>

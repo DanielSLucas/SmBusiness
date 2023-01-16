@@ -1,7 +1,7 @@
 import { Flex, Icon, Tag, Td, Text, Tr, useColorModeValue } from "@chakra-ui/react";
 import { FiArrowDownCircle, FiArrowUpCircle, FiCalendar, FiHash } from "react-icons/fi";
 import { toBRL } from "../utils/toBRL";
-import { toLocaleDateString } from "../utils/toLocaleDateString";
+import { formatted } from "../utils";
 
 interface Movement {
   id: number;
@@ -55,7 +55,7 @@ const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
             </Flex>
             <Flex alignItems="center" gap="2">
               <Icon as={FiCalendar} />
-              <Text>{toLocaleDateString(movement.date)}</Text>
+              <Text>{formatted(movement.date)}</Text>
             </Flex>
           </Flex>
         </Flex>

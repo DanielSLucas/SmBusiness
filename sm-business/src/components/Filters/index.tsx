@@ -11,7 +11,8 @@ import {
 } from "@chakra-ui/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FiFilter, FiX } from "react-icons/fi";
-import { useTags } from "../hooks/useTags";
+import { useTags } from "../../hooks/useTags";
+import { Dropdown } from "../Inputs/TagInput/Dropdown";
 import { FiltersForm } from "./FiltersForm";
 
 export interface FiltersData {
@@ -27,16 +28,27 @@ export interface FiltersData {
 interface FiltersProps {
   onFilter(filters: Partial<FiltersData>): void;  
   isLoading: boolean;
+  showOrderFilters?: boolean;
+  showGroupByFilter?: boolean;
+  canCreateTags?: boolean;
+  resetAfterSubmit?: boolean;
 }
 
-export const Filters: React.FC<FiltersProps> = ({ onFilter, isLoading }) => {
+export const Filters: React.FC<FiltersProps> = ({ 
+  onFilter, 
+  isLoading, 
+  showOrderFilters = false,
+  showGroupByFilter = false,
+  canCreateTags = false,
+  resetAfterSubmit = false,
+}) => {
   const showDrawer = useBreakpointValue({ base: true, lg: false }, { fallback: 'true' });
   const { register, handleSubmit, reset, setValue, control } = useForm<FiltersData>();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { tags } = useTags();
-
     
   const onSubmit: SubmitHandler<FiltersData> = (data) => {
+    console.log(data)
     const filters = Object.keys(data).reduce((prev, curr) => {
       const key = curr as keyof FiltersData;
 
@@ -48,12 +60,12 @@ export const Filters: React.FC<FiltersProps> = ({ onFilter, isLoading }) => {
     }, {} as Record<string, any>);
 
     onFilter(filters);
-    reset();
+    resetAfterSubmit && reset();
     onClose();
   }  
-
+  
   return (
-    <Flex w="100%" direction="column">
+    <Flex w="100%" direction="column" position="relative">
       <Button isLoading={isLoading} onClick={isOpen ? onClose : onOpen} w="100%" my="4">
         <Flex gap="2" alignItems="center">
           <Text>{isOpen ? 'Fechar' : 'Filtros'}</Text>
@@ -71,6 +83,9 @@ export const Filters: React.FC<FiltersProps> = ({ onFilter, isLoading }) => {
                 setValue={(value) => setValue('tags', value)}
                 control={control}
                 tags={tags}
+                showOrderFilters={showOrderFilters}
+                showGroupByFilter={showGroupByFilter}
+                canCreateTags={canCreateTags}
               />
             </DrawerContent>
           </Drawer>
@@ -82,6 +97,9 @@ export const Filters: React.FC<FiltersProps> = ({ onFilter, isLoading }) => {
               setValue={(value) => setValue('tags', value)}
               control={control}
               tags={tags}
+              showOrderFilters={showOrderFilters}
+              showGroupByFilter={showGroupByFilter}
+              canCreateTags={canCreateTags}
             />
           </Collapse>
         )

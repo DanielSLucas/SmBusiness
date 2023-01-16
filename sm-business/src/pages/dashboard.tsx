@@ -1,11 +1,15 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Flex, FormControl, FormLabel, Heading, Select as ChakraSelect, useColorModeValue } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 import { useQuery } from "react-query";
 
 import { CustomTable } from "../components/CustomTable";
+import { Filters, FiltersData } from "../components/Filters";
 import { Header } from "../components/Header";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
 import { getSummarizedMovements } from "../services/api";
+import { MovementsSummaryParams } from "../services/api/routes/getSummarizedMovements";
+import { queryClient } from "../services/queryClient";
 import { currencyToNumber } from "../utils/currencyToNumber";
 import { toBRL } from "../utils/toBRL";
 
@@ -13,28 +17,37 @@ const ReactApexChart = dynamic(() => import('react-apexcharts'), {
   ssr: false,
 });
 
-export default function Dashboard() {
-  const { data, error } = useQuery(
-    ["summarizedMovements", { groupBy: 'month' }], getSummarizedMovements({ groupBy: 'month' }) 
+export default function Dashboard() {  
+  const [filters, setFilters] = useState<MovementsSummaryParams>({
+    groupBy: 'month'
+  });
+  const { data, error, isLoading } = useQuery(
+    ["summarizedMovements", filters], getSummarizedMovements(filters) 
   );
+  const tooltipTheme = useColorModeValue('light', 'dark');
   useApiErrorToasts(error);
+
+  async function handleFilter(receivedFilters: MovementsSummaryParams) {
+    setFilters(receivedFilters);    
+    queryClient.fetchQuery(["summarizedMovements", filters], getSummarizedMovements(filters));    
+  }
 
   return (
     <Flex
       flex="1"
-      justifyContent="center"
-      alignItems="center"      
+      justifyContent="center"      
     >
       <Flex 
         direction="column" 
-        alignItems="center" 
-        w="7xl" 
+        alignItems="center"
+        w="100%"
+        maxW="7xl" 
         px={['6', '8', '16']} 
         py="8"
       >
         <Header title="Dashboard"/>
-        
-        <Box id="chart" width="100%" mt="10">
+
+        <Box id="chart" width="100%" h="40vh" mt="10">
           {data && (
             <ReactApexChart 
               options={{                
@@ -58,13 +71,13 @@ export default function Dashboard() {
                   colors: ['transparent']
                 },
                 xaxis: {
-                  categories: data.map(item => item.month)
+                  categories: data.map(item => item.group)
                 },
                 fill: {
                   opacity: 1
                 },
                 tooltip: {
-                  theme: 'dark',
+                  theme: tooltipTheme,
                   y: {
                     formatter: (val) => toBRL(String(val)),                    
                   }
@@ -76,15 +89,23 @@ export default function Dashboard() {
                 { name: "Total", data: data.map(item => currencyToNumber(item.total)), color: "var(--chakra-colors-blue-300)" },
               ]}
               type="bar"
-              height={350}              
+              height="100%"
             />
           )}
-        </Box>
+        </Box>        
 
+        <Filters 
+          isLoading={isLoading}
+          onFilter={handleFilter}
+          canCreateTags
+          showGroupByFilter
+        />  
+
+       <Box width="100%" h={["30vh", "32vh", "35vh", "38vh"]}>
         <CustomTable 
           columnsConfig={[{
-            propertyName: "month",
-            columnName: "mês/ano",
+            propertyName: "group",
+            columnName: "Grupo",
             colSpan: 1,            
           }, {
             propertyName: "income",
@@ -103,6 +124,7 @@ export default function Dashboard() {
           }]}
           data={data ?? []}
         />
+       </Box>
 
       </Flex>
     </Flex>

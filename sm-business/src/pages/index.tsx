@@ -94,7 +94,7 @@ export default function Home({ tags: allTags }: HomeProps) {
       >
         <Header title="Livro caixa"/>
         <Balance balance={balance} />                
-        <Filters onFilter={handleFilter} isLoading={isLoading} />
+        <Filters onFilter={handleFilter} isLoading={isLoading} showOrderFilters />
         <MovementsTable movements={movements || []} onNewMovementButtonClick={onModalOpen}/>
 
         <NewMovementModal isOpen={isModalOpen} onClose={onModalClose} />
