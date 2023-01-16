@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { getTags } from "../services/api";
 
@@ -19,13 +20,18 @@ interface TagsProviderProps {
 }
 
 export const TagsProvider: React.FC<TagsProviderProps> = ({ children }) => {
+  const { data: session, status } = useSession();
   const [tags, setTags] = useState<Tag[]>([]);
 
   useEffect(() => {
-    getTags().then(apiTags => {
-      setTags(apiTags.map(tag => ({ ...tag, selected: false })));
-    })
-  }, [])
+    if (status === "authenticated") {
+      getTags()
+      .then(apiTags => {
+        setTags(apiTags.map(tag => ({ ...tag, selected: false })));
+      })
+      .catch(_err => setTags([]))
+    }
+  }, [status])
 
   function addTag(tagName: string) {
     setTags(prev => [...prev, { name: tagName, selected: false }]);
