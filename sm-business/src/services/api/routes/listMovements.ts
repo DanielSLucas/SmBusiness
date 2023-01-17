@@ -8,6 +8,7 @@ export interface Filters {
   endDate?: Date;
   description?: string;
   tags?: string;
+  distinct?: string;
 }
 
 export interface Movement {

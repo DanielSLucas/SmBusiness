@@ -1,18 +1,18 @@
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Flex, Button, ModalFooter, useToast } from "@chakra-ui/react";
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Flex, Button, useToast } from "@chakra-ui/react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from "yup";
 
-import { api, createMovement } from "../services/api";
+import { createMovement, listMovements } from "../services/api";
 import { Input } from "./Inputs/Input";
 import { Select } from "./Inputs/Select";
-import { Tag, TagInput } from "./Inputs/TagInput";
-import { useMutation } from "react-query";
+import { TagInput } from "./Inputs/TagInput";
+import { useMutation, useQuery } from "react-query";
 import { queryClient } from "../services/queryClient";
 import { useTags } from "../hooks/useTags";
+import { AutoCompleteInput, AutoCompleteInputOption } from "./Inputs/AutoCompleteInput";
 
 interface NewMovementModalProps {
   onClose: () => void;
@@ -55,14 +55,22 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
     handleSubmit, 
     reset, 
     setValue, 
-    control, 
+    control,
+    watch,
+    setFocus,
     formState: { errors, isSubmitting },
     clearErrors,
   } = useForm<NewMovementFormData>({
     resolver: yupResolver(schema),
   });  
+  const descriptionCurrentValue = watch("description", '');
+  const { data: movements } = useQuery(
+    ['movements', { description: descriptionCurrentValue, distinct: "description" }], 
+    listMovements({ description: descriptionCurrentValue, distinct: "description" })
+  );
 
-  const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {    
+
+  const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {
     try {
       await mutateAsync(data)
 
@@ -102,6 +110,19 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
     }
   }
 
+  function handleAutoCompleteOptionClick(option: AutoCompleteInputOption) {
+    if (movements) {
+      const movement = movements.find(mv => mv.id === option.id);
+
+      if (movement) {
+        setValue('amount', Number(movement.amount));
+        setValue('type', movement.type);
+        setValue('tags', movement.tags.map(({tag}) => tag.name).join(";"));        
+        setFocus("date")  
+      }
+    }
+  }
+
   return (
     <Modal onClose={onClose} isOpen={isOpen} isCentered>
       <ModalOverlay />
@@ -110,12 +131,16 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
         <ModalCloseButton />
         <ModalBody pb="6">
           <Flex as="form" direction="column" gap="2" onSubmit={handleSubmit(handleNewMovementFormSubmit)}>
-            <Input 
+            <AutoCompleteInput 
               label="Descrição"
               placeholder="Descrição"
               name="description"
               register={register}
-              error={errors.description}
+              error={errors.description}              
+              autoCompleteOptions={movements?.map(mv => ({ id: mv.id, value: mv.description })) ?? []}
+              currentValue={descriptionCurrentValue}
+              setValue={(value) => setValue('description', value)}
+              onOptionClick={handleAutoCompleteOptionClick}
             />
 
             <Input 

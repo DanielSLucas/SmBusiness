@@ -5,7 +5,7 @@ import { FiPlus } from "react-icons/fi";
 
 import { TagInputContainer } from "./Container";
 import { CustomTag } from "./CustomTag";
-import { Dropdown } from "./Dropdown";
+import { Dropdown } from "../Dropdown";
 
 export interface Tag {  
   name: string;
@@ -50,8 +50,14 @@ export const TagInput: React.FC<TagInputProps> = ({
   useEffect(() => {
     if(!hiddenInputValue) {
       setTags(prev => prev.map(tag => ({ ...tag, selected: false })));
+    } else {
+      const incomingTags: string[] = hiddenInputValue.split(separator);
+      setTags(prev => prev.map(tag => ({ 
+        ...tag, 
+        selected: incomingTags.includes(tag.name)
+      })));
     }
-  }, [hiddenInputValue]);
+  }, [hiddenInputValue, separator]);
 
   useEffect(() => {
     setTags(prev => {

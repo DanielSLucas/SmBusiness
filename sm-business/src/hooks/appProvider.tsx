@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { NewMovementModalProvider } from "./useNewMovementModal";
 import { TagsProvider } from "./useTags";
 
 interface AppProviderProps {
@@ -8,7 +9,9 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps>  = ({ children }) => {
   return (
     <TagsProvider>
-      {children}
+      <NewMovementModalProvider>
+        {children}
+      </NewMovementModalProvider>
     </TagsProvider>
   )
 }

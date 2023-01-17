@@ -13,6 +13,7 @@ import { Tag } from "../components/Inputs/TagInput";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
 import { useQuery } from "react-query";
 import { queryClient } from "../services/queryClient";
+import { useNewMovementModal } from "../hooks/useNewMovementModal";
 
 export interface Movement {
   id: number;
@@ -39,7 +40,7 @@ interface HomeProps {
 }
 
 export default function Home({ tags: allTags }: HomeProps) {
-  const { onOpen: onModalOpen, onClose: onModalClose, isOpen: isModalOpen } = useDisclosure();
+  const { onClose: onModalClose, isOpen: isModalOpen } = useNewMovementModal();
   const [filters, setFilters] = useState<Partial<FiltersData>>({});
   const { data: movements, isLoading, error } = useQuery(
     ['movements', filters], listMovements(filters)
@@ -95,7 +96,7 @@ export default function Home({ tags: allTags }: HomeProps) {
         <Header title="Livro caixa"/>
         <Balance balance={balance} />                
         <Filters onFilter={handleFilter} isLoading={isLoading} showOrderFilters />
-        <MovementsTable movements={movements || []} onNewMovementButtonClick={onModalOpen}/>
+        <MovementsTable movements={movements || []} />
 
         <NewMovementModal isOpen={isModalOpen} onClose={onModalClose} />
       </Flex>

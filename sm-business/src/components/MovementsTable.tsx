@@ -1,7 +1,6 @@
-import { Box, Skeleton, Stack, Table, TableCaption, TableContainer, Tbody, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
-import { CustomTable } from "./CustomTable";
+import { Box, Table, TableCaption, TableContainer, Tbody, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
 import MovementRow from "./MovementRow";
-import { NewMovementButton } from "./NewMovementButton";
+import { MovementsMenu } from "./MovementsMenu";
 import { TableSkeletonRow } from "./TableSkeletonRow";
 
 interface Movement {
@@ -19,19 +18,15 @@ interface Movement {
 }
 
 interface MovementsTableProps {
-  movements: Movement[];
-  onNewMovementButtonClick: () => void;
+  movements: Movement[];  
 }
 
-export const MovementsTable: React.FC<MovementsTableProps> = ({ 
-  movements,
-  onNewMovementButtonClick,
-}) => {
+export const MovementsTable: React.FC<MovementsTableProps> = ({ movements }) => {
   const headColor = useColorModeValue('gray.50', 'gray.900');
 
   return (
     <Box w="100%" position="relative">
-      <NewMovementButton onClick={onNewMovementButtonClick}/>
+      <MovementsMenu />
       <TableContainer w="100%" h={{ base: "51vh", lg: "57.2vh" }} overflowY="scroll">
         <Table variant="unstyled">
           <TableCaption>Movimentações</TableCaption>
