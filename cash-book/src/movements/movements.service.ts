@@ -12,6 +12,7 @@ import {
   SummaryOptionsDto,
 } from './dtos/summary-options.dto';
 import { UpdateMovementDto } from './dtos/update-movement.dto';
+import { Movement } from './entities/movement.entity';
 
 @Injectable()
 export class MovementsService {
@@ -101,8 +102,16 @@ export class MovementsService {
   }
 
   findAll(authUserId: string, options?: Partial<FindAllMovementsDto>) {
-    const { page, date, description, startDate, endDate, orderBy, tags } =
-      options;
+    const {
+      page,
+      date,
+      description,
+      startDate,
+      endDate,
+      orderBy,
+      tags,
+      distinct,
+    } = options;
 
     const where = { authUserId };
 
@@ -151,6 +160,12 @@ export class MovementsService {
             OR: tags.split(';').map((tag) => ({ tag: { name: tag } })),
           },
         },
+      });
+    }
+
+    if (distinct) {
+      Object.assign(otherOptions, {
+        distinct: distinct.split(';') as (keyof Movement)[],
       });
     }
 

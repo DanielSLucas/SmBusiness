@@ -59,4 +59,8 @@ export class FindAllMovementsDto {
   @IsString()
   @IsOptional()
   tags: string;
+
+  @IsString()
+  @IsOptional()
+  distinct: string;
 }
