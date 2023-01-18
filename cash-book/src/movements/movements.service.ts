@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { createReadStream } from 'fs';
+import { unlink } from 'fs/promises';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { TagsService } from 'src/tags/tags.service';
+import { Transform, Writable } from 'stream';
+
 import {
   CreateMovementDto,
   CreateMovementsDto,
@@ -12,7 +16,7 @@ import {
   SummaryOptionsDto,
 } from './dtos/summary-options.dto';
 import { UpdateMovementDto } from './dtos/update-movement.dto';
-import { Movement } from './entities/movement.entity';
+import { Movement, MovementType } from './entities/movement.entity';
 
 @Injectable()
 export class MovementsService {
@@ -45,6 +49,7 @@ export class MovementsService {
         ...createMovementDto,
         date,
         amount: new Prisma.Decimal(createMovementDto.amount),
+        type: createMovementDto.type.toUpperCase() as MovementType,
         authUserId,
         tags: {
           createMany: {
@@ -78,6 +83,7 @@ export class MovementsService {
         ...dto,
         date,
         amount: new Prisma.Decimal(dto.amount),
+        type: dto.type.toUpperCase() as MovementType,
         authUserId,
         tags: {
           createMany: {
@@ -101,7 +107,7 @@ export class MovementsService {
     return movements;
   }
 
-  findAll(authUserId: string, options?: Partial<FindAllMovementsDto>) {
+  async findAll(authUserId: string, options?: Partial<FindAllMovementsDto>) {
     const {
       page,
       date,
@@ -187,7 +193,7 @@ export class MovementsService {
     });
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     return this.prisma.movement.findUnique({
       where: {
         id,
@@ -225,7 +231,7 @@ export class MovementsService {
     });
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return this.prisma.movement.delete({
       where: {
         id,
@@ -233,7 +239,7 @@ export class MovementsService {
     });
   }
 
-  balance(authUserId: string) {
+  async balance(authUserId: string) {
     return this.prisma.$queryRaw`
       SELECT         
         sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
@@ -244,7 +250,7 @@ export class MovementsService {
     `;
   }
 
-  summary(authUserId: string, options: SummaryOptionsDto) {
+  async summary(authUserId: string, options: SummaryOptionsDto) {
     const { groupBy, description, date, startDate, endDate, tags } = options;
 
     let groupByColumnSelect, groupByColumn, orderBy;
@@ -361,5 +367,77 @@ export class MovementsService {
     `;
 
     return this.prisma.$queryRaw(query);
+  }
+
+  async import(authUserId: string, file: Express.Multer.File) {
+    if (file.mimetype !== 'text/csv') {
+      unlink(file.path);
+      throw new BadRequestException('Invalid file type');
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const saveMovements = (movements) =>
+        this.createMany(authUserId, movements);
+      const isArrayColumn = (columnName) => /^.+\/\d+$/g.test(columnName);
+      let head: string[] = [];
+
+      const parseCsv = new Transform({
+        transform(chunk, enc, cb) {
+          const data: string = chunk.toString();
+          const rows = data.split('\r\n').map((row) => row.split(','));
+
+          if (!head.length) {
+            head = rows.shift();
+          }
+
+          const json = rows.map((row) => {
+            const obj = {};
+
+            head.forEach((column, i) => {
+              const value = row[i];
+              if (!value) return;
+
+              if (isArrayColumn(column)) {
+                const [columnName] = column.split('/');
+                if (obj[columnName]?.length) {
+                  Object.assign(obj, {
+                    [columnName]: [...obj[columnName], value],
+                  });
+                } else {
+                  Object.assign(obj, { [columnName]: [value] });
+                }
+              } else {
+                Object.assign(obj, { [column]: value });
+              }
+            });
+
+            return JSON.stringify(obj);
+          });
+
+          cb(null, json.join('\n'));
+        },
+      });
+
+      const createMovements = new Writable({
+        write(chunk, enc, cb) {
+          const data = chunk.toString();
+          const movements = data.split('\n').map(JSON.parse);
+
+          saveMovements(movements)
+            .then(() => cb(null))
+            .catch((err) => cb(err));
+        },
+      });
+
+      createReadStream(file.path)
+        .pipe(parseCsv)
+        .pipe(createMovements)
+        .on('error', (err) => reject(err))
+        .on('close', () => {
+          unlink(file.path)
+            .then(() => resolve())
+            .catch((err) => reject(err));
+        });
+    });
   }
 }

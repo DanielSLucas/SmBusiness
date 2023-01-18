@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { MovementsService } from './movements.service';
 import {
@@ -17,6 +19,7 @@ import { UpdateMovementDto } from './dtos/update-movement.dto';
 import { AuthUser, CurrentUser } from 'src/auth/current-user';
 import { FindAllMovementsDto } from './dtos/find-all-movement.dto';
 import { SummaryOptionsDto } from './dtos/summary-options.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('movements')
 export class MovementsController {
@@ -28,6 +31,16 @@ export class MovementsController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.movementsService.create(user.sub, createMovementDto);
+  }
+
+  @Post('/import')
+  @UseInterceptors(FileInterceptor('file'))
+  importFile(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.movementsService.import(user.sub, file);
   }
 
   @Get('summary')
