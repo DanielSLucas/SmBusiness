@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { ImportMovementsModalProvider } from "./useImportMovementsModal";
 import { NewMovementModalProvider } from "./useNewMovementModal";
 import { TagsProvider } from "./useTags";
 
@@ -10,7 +11,9 @@ export const AppProvider: React.FC<AppProviderProps>  = ({ children }) => {
   return (
     <TagsProvider>
       <NewMovementModalProvider>
-        {children}
+        <ImportMovementsModalProvider>
+          {children}
+        </ImportMovementsModalProvider>
       </NewMovementModalProvider>
     </TagsProvider>
   )

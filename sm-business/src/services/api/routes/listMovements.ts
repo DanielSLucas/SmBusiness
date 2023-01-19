@@ -9,6 +9,8 @@ export interface Filters {
   description?: string;
   tags?: string;
   distinct?: string;
+  page?: number;
+  perPage?: number;
 }
 
 export interface Movement {

@@ -1,19 +1,19 @@
 import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
 import React, { useMemo, useState } from "react";
-import { Flex, useDisclosure } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
+import { useQuery } from "react-query";
 
-import { api, listMovements } from "../services/api";
+import { queryClient } from "../services/queryClient";
+import { listMovements } from "../services/api";
+
 import { Balance } from "../components/Balance";
 import { Header } from "../components/Header";
 import { MovementsTable } from "../components/MovementsTable";
 import { FiltersData, Filters } from "../components/Filters";
 import { NewMovementModal } from "../components/NewMovementModal";
-import { Tag } from "../components/Inputs/TagInput";
+import { ImportMovementsModal } from "../components/ImportMovementsModal";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
-import { useQuery } from "react-query";
-import { queryClient } from "../services/queryClient";
-import { useNewMovementModal } from "../hooks/useNewMovementModal";
 
 export interface Movement {
   id: number;
@@ -35,15 +35,10 @@ type Balance = {
   total: string;
 }
 
-interface HomeProps {
-  tags: Tag[];
-}
-
-export default function Home({ tags: allTags }: HomeProps) {
-  const { onClose: onModalClose, isOpen: isModalOpen } = useNewMovementModal();
+export default function Home() {
   const [filters, setFilters] = useState<Partial<FiltersData>>({});
   const { data: movements, isLoading, error } = useQuery(
-    ['movements', filters], listMovements(filters)
+    ['movements', filters], listMovements({...filters, page: 1, perPage: 20})
   );
   useApiErrorToasts(error);
 
@@ -98,7 +93,8 @@ export default function Home({ tags: allTags }: HomeProps) {
         <Filters onFilter={handleFilter} isLoading={isLoading} showOrderFilters />
         <MovementsTable movements={movements || []} />
 
-        <NewMovementModal isOpen={isModalOpen} onClose={onModalClose} />
+        <NewMovementModal />
+        <ImportMovementsModal />
       </Flex>
     </Flex>
   )
@@ -116,31 +112,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       }
     }
   }
-
-  let tags;
-
-  try {
-    const getFromApi = async (path: string) => {
-      return api.get(path, {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`
-        }
-      }).then(response => response.data);
-    }    
-    
-    tags = (await getFromApi('/tags/names')).map((tag: Tag) => ({ ...tag, selected: false }));
-  } catch (error) {
-    return {
-      redirect: {
-        destination: '/signin',
-        permanent: false
-      }
-    }
-  }
   
   return {
-    props: {
-      tags,
-    }
+    props: {}
   }
 }

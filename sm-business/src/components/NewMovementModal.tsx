@@ -13,11 +13,7 @@ import { useMutation, useQuery } from "react-query";
 import { queryClient } from "../services/queryClient";
 import { useTags } from "../hooks/useTags";
 import { AutoCompleteInput, AutoCompleteInputOption } from "./Inputs/AutoCompleteInput";
-
-interface NewMovementModalProps {
-  onClose: () => void;
-  isOpen: boolean;
-}
+import { useNewMovementModal } from "../hooks/useNewMovementModal";
 
 export interface NewMovementFormData {
   description: string;
@@ -38,10 +34,8 @@ const schema = Yup.object({
   tags: Yup.string().uppercase().required('Tags são obrigatórias'),
 })
 
-export const NewMovementModal: React.FC<NewMovementModalProps> = ({
-  onClose,
-  isOpen,
-}) => {
+export const NewMovementModal: React.FC = () => {
+  const { isOpen, onClose } = useNewMovementModal();
   const router = useRouter();
   const toast = useToast();
   const { tags, addTag } = useTags();
@@ -68,7 +62,6 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
     ['movements', { description: descriptionCurrentValue, distinct: "description" }], 
     listMovements({ description: descriptionCurrentValue, distinct: "description" })
   );
-
 
   const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {
     try {
@@ -130,7 +123,12 @@ export const NewMovementModal: React.FC<NewMovementModalProps> = ({
         <ModalHeader>Nova movimentação</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb="6">
-          <Flex as="form" direction="column" gap="2" onSubmit={handleSubmit(handleNewMovementFormSubmit)}>
+          <Flex 
+            as="form" 
+            direction="column" 
+            gap="2" 
+            onSubmit={handleSubmit(handleNewMovementFormSubmit)}
+          >
             <AutoCompleteInput 
               label="Descrição"
               placeholder="Descrição"
