@@ -19,7 +19,7 @@ const ReactApexChart = dynamic(() => import('react-apexcharts'), {
 
 export default function Dashboard() {  
   const [filters, setFilters] = useState<MovementsSummaryParams>({
-    groupBy: 'month'
+    groupBy: 'year'
   });
   const { data, error, isLoading } = useQuery(
     ["summarizedMovements", filters], getSummarizedMovements(filters) 

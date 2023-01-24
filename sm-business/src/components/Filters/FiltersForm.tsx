@@ -1,9 +1,5 @@
-import { 
-  Box,
-  Button,
-  Flex,  
-} from "@chakra-ui/react";
-import { Control, FieldValues, UseFormRegister } from "react-hook-form";
+import { Button, Flex } from "@chakra-ui/react";
+import { Control, UseFormRegister } from "react-hook-form";
 import { FiltersData } from ".";
 
 import { DateInput } from "../Inputs/DateInput";
@@ -49,8 +45,8 @@ export const FiltersForm: React.FC<FiltersFormProps> = ({
           register={register}
         >
           <option value="day">Dia</option>
-          <option value="month" selected>Mês</option>
-          <option value="year">Ano</option>
+          <option value="month">Mês</option>
+          <option value="year" selected >Ano</option>
           <option value="tags">Tags</option>
         </Select>
       )}

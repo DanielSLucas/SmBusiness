@@ -12,7 +12,6 @@ import {
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FiFilter, FiX } from "react-icons/fi";
 import { useTags } from "../../hooks/useTags";
-import { Dropdown } from "../Inputs/Dropdown";
 import { FiltersForm } from "./FiltersForm";
 
 export interface FiltersData {
