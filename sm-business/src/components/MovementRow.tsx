@@ -9,12 +9,7 @@ interface Movement {
   description: string;
   amount: string;
   type: 'INCOME' | 'OUTCOME';
-  tags: {
-    tag: {
-      id: string;
-      name: string;
-    }
-  }[]
+  tags: string[]
 }
 
 interface MovementRowProps {
@@ -28,10 +23,10 @@ const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
   return (
     <Tr bg={rowBackground} borderBottomWidth={4} borderColor={boderColor} borderRadius="md">
       {/* TIPO */}
-      <Td w="4" display={["none", "none", "none", "block"]}>
+      <Td w="4" display={["none", "none", "none", "block"]} >
         {movement.type === 'INCOME' 
-          ? <Icon as={FiArrowUpCircle} color="green.400" fontSize="2xl" />
-          : <Icon as={FiArrowDownCircle} color="red.400" fontSize="2xl" /> 
+          ? <Icon as={FiArrowUpCircle} color="green.400" fontSize="2xl" aria-label="Entrada"/>
+          : <Icon as={FiArrowDownCircle} color="red.400" fontSize="2xl" aria-label="Saída"/> 
         }
       </Td>
 
@@ -39,6 +34,7 @@ const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
       <Td colSpan={2}>
         <Flex direction="column" justifyContent="flex-start">
           <Text 
+            aria-label={movement.description}
             fontWeight="semibold" 
             fontSize="xl" 
             overflow="hidden" 
@@ -64,9 +60,9 @@ const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
       {/* TAGS */}
       <Td colSpan={2} display={["none", "block"]}>
         <Flex flexWrap="wrap" gap="2">
-          {movement.tags.map(({ tag }) => (
-            <Tag key={tag.id} size="sm">
-              {tag.name}
+          {movement.tags.map((tag, i) => (
+            <Tag key={`movementRow_tag_${tag}_#${i}`} size="sm">
+              {tag}
             </Tag>
           ))}
         </Flex>

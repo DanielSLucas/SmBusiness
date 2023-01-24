@@ -1,10 +1,10 @@
-import { Box, Flex, FormControl, FormLabel, Heading, Select as ChakraSelect, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, useColorModeValue } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useQuery } from "react-query";
 
 import { CustomTable } from "../components/CustomTable";
-import { Filters, FiltersData } from "../components/Filters";
+import { Filters } from "../components/Filters";
 import { Header } from "../components/Header";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
 import { getSummarizedMovements } from "../services/api";

@@ -1,4 +1,6 @@
 import { Box, Table, TableCaption, TableContainer, Tbody, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
+import { ColumnDef } from "@tanstack/react-table";
+import { useMemo } from "react";
 import MovementRow from "./MovementRow";
 import { MovementsMenu } from "./MovementsMenu";
 import { TableSkeletonRow } from "./TableSkeletonRow";
@@ -9,12 +11,7 @@ interface Movement {
   description: string;
   amount: string;
   type: 'INCOME' | 'OUTCOME';
-  tags: {
-    tag: {
-      id: string;
-      name: string;
-    }
-  }[]
+  tags: string[]
 }
 
 interface MovementsTableProps {

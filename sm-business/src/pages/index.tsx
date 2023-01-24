@@ -1,10 +1,9 @@
 import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Flex } from "@chakra-ui/react";
 import { useQuery } from "react-query";
 
-import { queryClient } from "../services/queryClient";
 import { listMovements } from "../services/api";
 
 import { Balance } from "../components/Balance";
@@ -14,6 +13,7 @@ import { FiltersData, Filters } from "../components/Filters";
 import { NewMovementModal } from "../components/NewMovementModal";
 import { ImportMovementsModal } from "../components/ImportMovementsModal";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
+import { getBalance } from "../services/api/routes/getBalance";
 
 export interface Movement {
   id: number;
@@ -21,12 +21,7 @@ export interface Movement {
   description: string;
   amount: string;
   type: 'INCOME' | 'OUTCOME';
-  tags: {
-    tag: {
-      id: string;
-      name: string;
-    }
-  }[]
+  tags: string[]
 }
 
 type Balance = {
@@ -37,43 +32,20 @@ type Balance = {
 
 export default function Home() {
   const [filters, setFilters] = useState<Partial<FiltersData>>({});
-  const { data: movements, isLoading, error } = useQuery(
-    ['movements', filters], listMovements({...filters, page: 1, perPage: 20})
+  const { data: movements, isLoading, error: movementsError } = useQuery(
+    ['movements', filters], listMovements({...filters, page: 1, perPage: 20}),
+    { staleTime: 1000 * 60 * 10 }
   );
-  useApiErrorToasts(error);
+  const { data: balance, error: balanceError } = useQuery(
+    ['movements/balance', filters], getBalance(filters),
+    { staleTime: 1000 * 60 * 10 }
+  )
+  useApiErrorToasts(movementsError);
+  useApiErrorToasts(balanceError);
 
   async function handleFilter(receivedFilters: Partial<FiltersData>) {
     setFilters(receivedFilters);
-    queryClient.fetchQuery(['movements', receivedFilters], listMovements(receivedFilters));    
   }
-
-  const balance = useMemo(() => {
-    const totals = {
-      income: 0,
-      outcome: 0,
-      total: 0,
-    }
-
-    if (movements) {
-      movements.reduce((prev, curr) => {
-        if(curr.type === "INCOME") {
-          prev.income += Number(curr.amount);
-        } else {
-          prev.outcome += Number(curr.amount);        
-        }        
-
-        return prev;
-      }, totals);
-    }
-
-    totals.total = totals.income - totals.outcome;
-
-    return {
-      income: totals.income.toFixed(2),
-      outcome: totals.outcome.toFixed(2),
-      total: totals.total.toFixed(2),
-    };
-  }, [movements]);
 
   return (
     <Flex
@@ -90,7 +62,7 @@ export default function Home() {
       >
         <Header title="Livro caixa"/>
         <Balance balance={balance} />                
-        <Filters onFilter={handleFilter} isLoading={isLoading} showOrderFilters />
+        <Filters onFilter={handleFilter} isLoading={isLoading} showOrderFilters canCreateTags/>
         <MovementsTable movements={movements || []} />
 
         <NewMovementModal />

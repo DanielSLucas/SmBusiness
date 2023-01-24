@@ -35,10 +35,10 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
       <Heading>{title}</Heading>
 
       <Flex alignItems="center" gap="2">
-        <Button onClick={toggleColorMode}>          
+        <Button onClick={toggleColorMode} aria-label="Mudar tema">          
           <Icon as={colorMode === 'light' ? FiMoon : FiSun}/>            
         </Button>
-        <Button onClick={() => signOut()}>
+        <Button onClick={() => signOut()} aria-label="Sair">
           <Icon as={FiLogOut}/>
         </Button>
       </Flex>

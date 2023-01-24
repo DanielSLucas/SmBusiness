@@ -3,14 +3,20 @@ import { FiArrowDownCircle, FiArrowUpCircle, FiDollarSign } from "react-icons/fi
 import { ValueCard } from "./ValueCard";
 
 interface BalanceProps {
-  balance: {
+  balance?: {
     income: string;
     outcome: string;
     total: string;
   }
 }
 
-export const Balance: React.FC<BalanceProps> = ({ balance }) => {  
+export const Balance: React.FC<BalanceProps> = ({ 
+  balance = {
+    income: '0',
+    outcome: '0',
+    total: '0',
+  }
+}) => {  
   return (
     <Grid gap="4" w="100%" mt="8">
       <GridItem>

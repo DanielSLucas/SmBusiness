@@ -59,8 +59,8 @@ export const NewMovementModal: React.FC = () => {
   });  
   const descriptionCurrentValue = watch("description", '');
   const { data: movements } = useQuery(
-    ['movements', { description: descriptionCurrentValue, distinct: "description" }], 
-    listMovements({ description: descriptionCurrentValue, distinct: "description" })
+    ['movements', { description: descriptionCurrentValue, distinct: "description", orderBy: "description" }], 
+    listMovements({ description: descriptionCurrentValue, distinct: "description", orderBy: "description" })
   );
 
   const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {
@@ -110,7 +110,7 @@ export const NewMovementModal: React.FC = () => {
       if (movement) {
         setValue('amount', Number(movement.amount));
         setValue('type', movement.type);
-        setValue('tags', movement.tags.map(({tag}) => tag.name).join(";"));        
+        setValue('tags', movement.tags.map((tag) => tag).join(";"));        
         setFocus("date")  
       }
     }
