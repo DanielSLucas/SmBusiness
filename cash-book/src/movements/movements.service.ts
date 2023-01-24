@@ -10,7 +10,11 @@ import {
   CreateMovementDto,
   CreateMovementsDto,
 } from './dtos/create-movement.dto';
-import { FindAllMovementsDto } from './dtos/find-all-movement.dto';
+import {
+  FindAllMovementsDto,
+  MovementColumns,
+  Order,
+} from './dtos/find-all-movement.dto';
 import {
   MovementsGroupBy,
   SummaryOptionsDto,
@@ -239,15 +243,249 @@ export class MovementsService {
     });
   }
 
-  async balance(authUserId: string) {
-    return this.prisma.$queryRaw`
-      SELECT         
-        sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
-        sum(CASE WHEN mv.type = 'OUTCOME' THEN mv.amount ELSE 0 END) as "outcome",
-        sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE mv.amount END) "total"
-      FROM movements mv 
-      WHERE auth_user_id = ${authUserId}      
+  async balance(authUserId: string, options?: Partial<FindAllMovementsDto>) {
+    const { date, description, startDate, endDate, tags } = options;
+
+    let descriptionWhere = Prisma.empty;
+    if (description) {
+      const stringContainingDescription = Prisma.sql`'%' || ${description} || '%'`;
+      descriptionWhere = Prisma.sql`AND mv.description ILIKE ${stringContainingDescription}`;
+    }
+
+    let dateWhere = Prisma.empty;
+    if (date) {
+      dateWhere = Prisma.sql`AND mv.date = ${new Date(date)}`;
+    } else if (startDate && endDate) {
+      dateWhere = Prisma.sql`AND mv.date >= ${new Date(
+        startDate,
+      )} AND mv.date <= ${new Date(endDate)}`;
+    } else if (startDate) {
+      dateWhere = Prisma.sql`AND mv.date >= ${new Date(startDate)}`;
+    } else if (endDate) {
+      dateWhere = Prisma.sql`AND mv.date <= ${new Date(endDate)}`;
+    }
+
+    const movementTagNames = Prisma.sql`(
+      SELECT 
+        ARRAY_AGG(tg.name) AS mv_tags        
+      FROM movements_tags mvtg 
+      INNER JOIN tags tg ON tg.id = mvtg.tag_id
+      WHERE mvtg.movement_id = mv.id      
+    )`;
+
+    const tagsWhere = [];
+    if (tags) {
+      const tagQueries = tags.split(';');
+
+      for (const tagQuery of tagQueries) {
+        const addTagFilter = (tagNames: string[]) => {
+          const queryConnective = !tagsWhere.length
+            ? Prisma.sql`AND (`
+            : Prisma.sql` OR`;
+
+          tagsWhere.push(
+            Prisma.sql`${queryConnective} ${movementTagNames} @> ARRAY[${Prisma.join(
+              tagNames,
+            )}]`,
+          );
+        };
+
+        if (tagQuery.includes('&')) {
+          const tagNames = tagQuery.split('&');
+
+          addTagFilter(tagNames);
+        } else if (tagQuery.includes('|')) {
+          const tagNames = tagQuery.split('|');
+
+          for (const tagName of tagNames) {
+            addTagFilter([tagName]);
+          }
+        } else {
+          const tagName = tagQuery;
+          addTagFilter([tagName]);
+        }
+      }
+      tagsWhere.push(Prisma.sql` )`);
+    }
+
+    const columns = {
+      [MovementColumns.ID]: Prisma.sql`mv.id`,
+      [MovementColumns.DATE]: Prisma.sql`mv.date`,
+      [MovementColumns.DESCRIPTION]: Prisma.sql`mv.description`,
+      [MovementColumns.AMOUNT]: Prisma.sql`mv.amount`,
+      [MovementColumns.TYPE]: Prisma.sql`mv.type`,
+    };
+
+    const distinct =
+      options.distinct &&
+      (options.orderBy ? options.orderBy === options.distinct : true)
+        ? Prisma.sql`DISTINCT ON (${columns[options.distinct]})`
+        : Prisma.empty;
+
+    const withoutPaginationQuery = Prisma.sql`
+      SELECT ${distinct}
+        mv.id AS id,
+        mv.date AS date,
+        mv.description AS description,
+        mv.amount AS amount,
+        mv.type AS type,
+        ${movementTagNames} as tags
+      FROM movements mv
+      WHERE auth_user_id = ${authUserId} ${descriptionWhere} ${dateWhere} ${
+      tagsWhere.length ? Prisma.join(tagsWhere, '') : Prisma.empty
+    }`;
+
+    const query = Prisma.sql`SELECT 
+      sum(CASE WHEN mv.type = 'INCOME' THEN mv.amount ELSE 0 END) as "income",
+      sum(CASE WHEN mv.type = 'OUTCOME' THEN mv.amount ELSE 0 END) as "outcome",
+      sum(CASE WHEN mv.type = 'OUTCOME' THEN (mv.amount * -1) ELSE mv.amount END) "total"
+      FROM (${withoutPaginationQuery}) mv      
     `;
+
+    return (await this.prisma.$queryRaw(query))[0];
+  }
+
+  async find(authUserId: string, options?: Partial<FindAllMovementsDto>) {
+    const { page, date, description, startDate, endDate, tags } = options;
+
+    let descriptionWhere = Prisma.empty;
+    if (description) {
+      const stringContainingDescription = Prisma.sql`'%' || ${description} || '%'`;
+      descriptionWhere = Prisma.sql`AND mv.description ILIKE ${stringContainingDescription}`;
+    }
+
+    let dateWhere = Prisma.empty;
+    if (date) {
+      dateWhere = Prisma.sql`AND mv.date = ${new Date(date)}`;
+    } else if (startDate && endDate) {
+      dateWhere = Prisma.sql`AND mv.date >= ${new Date(
+        startDate,
+      )} AND mv.date <= ${new Date(endDate)}`;
+    } else if (startDate) {
+      dateWhere = Prisma.sql`AND mv.date >= ${new Date(startDate)}`;
+    } else if (endDate) {
+      dateWhere = Prisma.sql`AND mv.date <= ${new Date(endDate)}`;
+    }
+
+    const movementTagNames = Prisma.sql`(
+      SELECT 
+        ARRAY_AGG(tg.name) AS mv_tags        
+      FROM movements_tags mvtg 
+      INNER JOIN tags tg ON tg.id = mvtg.tag_id
+      WHERE mvtg.movement_id = mv.id      
+    )`;
+
+    const tagsWhere = [];
+    if (tags) {
+      const tagQueries = tags.split(';');
+
+      for (const tagQuery of tagQueries) {
+        const addTagFilter = (tagNames: string[]) => {
+          const queryConnective = !tagsWhere.length
+            ? Prisma.sql`AND (`
+            : Prisma.sql` OR`;
+
+          tagsWhere.push(
+            Prisma.sql`${queryConnective} ${movementTagNames} @> ARRAY[${Prisma.join(
+              tagNames,
+            )}]`,
+          );
+        };
+
+        if (tagQuery.includes('&')) {
+          const tagNames = tagQuery.split('&');
+
+          addTagFilter(tagNames);
+        } else if (tagQuery.includes('|')) {
+          const tagNames = tagQuery.split('|');
+
+          for (const tagName of tagNames) {
+            addTagFilter([tagName]);
+          }
+        } else {
+          const tagName = tagQuery;
+          addTagFilter([tagName]);
+        }
+      }
+      tagsWhere.push(Prisma.sql` )`);
+    }
+
+    const columns = {
+      [MovementColumns.ID]: Prisma.sql`mv.id`,
+      [MovementColumns.DATE]: Prisma.sql`mv.date`,
+      [MovementColumns.DESCRIPTION]: Prisma.sql`mv.description`,
+      [MovementColumns.AMOUNT]: Prisma.sql`mv.amount`,
+      [MovementColumns.TYPE]: Prisma.sql`mv.type`,
+    };
+
+    const distinct =
+      options.distinct &&
+      (options.orderBy ? options.orderBy === options.distinct : true)
+        ? Prisma.sql`DISTINCT ON (${columns[options.distinct]})`
+        : Prisma.empty;
+
+    const perPage = options.perPage || 10;
+
+    const orderBy = columns[options.orderBy] || null;
+    const order =
+      {
+        [Order.ASC]: Prisma.sql`ASC`,
+        [Order.DESC]: Prisma.sql`DESC`,
+      }[options.order] || Prisma.sql`ASC`;
+
+    const withoutPaginationQuery = Prisma.sql`
+      SELECT ${distinct}
+        mv.id AS id,
+        mv.date AS date,
+        mv.description AS description,
+        mv.amount AS amount,
+        mv.type AS type,
+        ${movementTagNames} as tags
+      FROM movements mv
+      WHERE auth_user_id = ${authUserId} ${descriptionWhere} ${dateWhere} ${
+      tagsWhere.length ? Prisma.join(tagsWhere, '') : Prisma.empty
+    } ${
+      orderBy
+        ? Prisma.sql`ORDER BY ${orderBy} ${order}`
+        : Prisma.sql`ORDER BY mv.id ASC`
+    }
+    `;
+
+    const query = Prisma.sql`${withoutPaginationQuery} ${
+      page && page > 0
+        ? Prisma.sql`LIMIT ${Number(perPage)} OFFSET ${Number(
+            perPage * (page - 1),
+          )}`
+        : Prisma.empty
+    }`;
+
+    console.log(query.values);
+    console.log(query.sql);
+    const data = await this.prisma.$queryRaw(query);
+
+    const [{ total }]: {
+      total: number;
+    }[] = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT COUNT(mvts.id)::int as total FROM (${withoutPaginationQuery}) as mvts`,
+    );
+
+    const pagination = {
+      ...(page && page > 0
+        ? {
+            isPaginated: true,
+            hasPrev: page > 1,
+            hasNext: total - perPage * page > 0,
+          }
+        : {
+            isPaginated: false,
+          }),
+      totalCount: total,
+    };
+
+    return {
+      pagination,
+      data,
+    };
   }
 
   async summary(authUserId: string, options: SummaryOptionsDto) {

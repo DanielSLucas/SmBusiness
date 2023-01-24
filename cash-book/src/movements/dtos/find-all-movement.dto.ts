@@ -11,22 +11,18 @@ export enum Order {
   DESC = 'desc',
 }
 
-export enum OrderBy {
+export enum MovementColumns {
   ID = 'id',
   DATE = 'date',
   DESCRIPTION = 'description',
   AMOUNT = 'amount',
   TYPE = 'type',
-  AUTHUSERID = 'authuserid',
-  REFID = 'refid',
-  CREATEDAT = 'createdat',
-  UPDATEDAT = 'updatedat',
 }
 
 export class FindAllMovementsDto {
-  @IsEnum(OrderBy)
+  @IsEnum(MovementColumns)
   @IsOptional()
-  orderBy: OrderBy;
+  orderBy: MovementColumns;
 
   @IsOptional()
   @IsEnum(Order)
@@ -62,5 +58,5 @@ export class FindAllMovementsDto {
 
   @IsString()
   @IsOptional()
-  distinct: string;
+  distinct: MovementColumns;
 }

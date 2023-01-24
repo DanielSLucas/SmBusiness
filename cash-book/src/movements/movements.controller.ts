@@ -52,8 +52,11 @@ export class MovementsController {
   }
 
   @Get('balance')
-  balance(@CurrentUser() user: AuthUser) {
-    return this.movementsService.balance(user.sub);
+  balance(
+    @CurrentUser() user: AuthUser,
+    @Query() searchOptions?: FindAllMovementsDto,
+  ) {
+    return this.movementsService.balance(user.sub, searchOptions);
   }
 
   @Get()
@@ -61,7 +64,7 @@ export class MovementsController {
     @CurrentUser() user: AuthUser,
     @Query() searchOptions?: FindAllMovementsDto,
   ) {
-    return this.movementsService.findAll(user.sub, searchOptions);
+    return this.movementsService.find(user.sub, searchOptions);
   }
 
   @Get(':id')
