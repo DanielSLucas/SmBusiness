@@ -1,7 +1,7 @@
 import { Button, Flex } from "@chakra-ui/react";
 import { Control, UseFormRegister } from "react-hook-form";
-import { FiltersData } from ".";
 
+import { FiltersData } from ".";
 import { DateInput } from "../Inputs/DateInput";
 import { Input } from "../Inputs/Input";
 import { Select } from "../Inputs/Select";

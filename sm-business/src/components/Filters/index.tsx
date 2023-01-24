@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FiFilter, FiX } from "react-icons/fi";
+
 import { useTags } from "../../hooks/useTags";
 import { FiltersForm } from "./FiltersForm";
 

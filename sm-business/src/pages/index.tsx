@@ -1,19 +1,19 @@
 import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Flex } from "@chakra-ui/react";
-import { useQuery } from "react-query";
+import { useInfiniteQuery, useQuery } from "react-query";
 
-import { listMovements } from "../services/api";
+import { listMovements, getBalance } from "../services/api";
 
 import { Balance } from "../components/Balance";
 import { Header } from "../components/Header";
 import { MovementsTable } from "../components/MovementsTable";
-import { FiltersData, Filters } from "../components/Filters";
+import { Filters } from "../components/Filters";
 import { NewMovementModal } from "../components/NewMovementModal";
 import { ImportMovementsModal } from "../components/ImportMovementsModal";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
-import { getBalance } from "../services/api/routes/getBalance";
+import { Filters as FiltersData } from "../services/api/routes/listMovements";
 
 export interface Movement {
   id: number;
@@ -32,20 +32,38 @@ type Balance = {
 
 export default function Home() {
   const [filters, setFilters] = useState<Partial<FiltersData>>({});
-  const { data: movements, isLoading, error: movementsError } = useQuery(
-    ['movements', filters], listMovements({...filters, page: 1, perPage: 20}),
-    { staleTime: 1000 * 60 * 10 }
+  const fetchMovements = ({ pageParam = 1 }) => listMovements({
+    ...filters, 
+    page: pageParam,
+    perPage: 20,
+  })();
+  const { 
+    data, 
+    isLoading, 
+    error: movementsError,
+    fetchNextPage,
+    hasNextPage,    
+    isFetching,
+  } = useInfiniteQuery(
+    ['movements', filters], fetchMovements,
+    { 
+      staleTime: 1000 * 60 * 10,
+      getNextPageParam: (lastPage, pages) => lastPage.pagination.hasNext ? pages.length + 1 : undefined
+    }
   );
   const { data: balance, error: balanceError } = useQuery(
     ['movements/balance', filters], getBalance(filters),
     { staleTime: 1000 * 60 * 10 }
   )
-  useApiErrorToasts(movementsError);
-  useApiErrorToasts(balanceError);
+  useApiErrorToasts(movementsError || balanceError);  
 
   async function handleFilter(receivedFilters: Partial<FiltersData>) {
     setFilters(receivedFilters);
   }
+  
+  const movements = useMemo(() => {
+    return data?.pages.flatMap(page => page.data) || []
+  }, [data]);
 
   return (
     <Flex
@@ -63,7 +81,14 @@ export default function Home() {
         <Header title="Livro caixa"/>
         <Balance balance={balance} />                
         <Filters onFilter={handleFilter} isLoading={isLoading} showOrderFilters canCreateTags/>
-        <MovementsTable movements={movements || []} />
+        <MovementsTable 
+          movements={movements}
+          infinityScrollProps={{
+            hasNextPage: !!hasNextPage,
+            fetchNextPage,
+            isFetching,
+          }}
+        />
 
         <NewMovementModal />
         <ImportMovementsModal />

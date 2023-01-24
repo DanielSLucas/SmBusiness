@@ -1,18 +1,28 @@
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Flex, Button, useToast } from "@chakra-ui/react";
+import { 
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  Flex,
+  Button,
+  useToast 
+} from "@chakra-ui/react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/router";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useMutation, useQuery } from "react-query";
 import * as Yup from "yup";
 
+import { queryClient } from "../services/queryClient";
 import { createMovement, listMovements } from "../services/api";
 import { Input } from "./Inputs/Input";
 import { Select } from "./Inputs/Select";
 import { TagInput } from "./Inputs/TagInput";
-import { useMutation, useQuery } from "react-query";
-import { queryClient } from "../services/queryClient";
-import { useTags } from "../hooks/useTags";
 import { AutoCompleteInput, AutoCompleteInputOption } from "./Inputs/AutoCompleteInput";
+import { useTags } from "../hooks/useTags";
 import { useNewMovementModal } from "../hooks/useNewMovementModal";
 
 export interface NewMovementFormData {
@@ -58,10 +68,11 @@ export const NewMovementModal: React.FC = () => {
     resolver: yupResolver(schema),
   });  
   const descriptionCurrentValue = watch("description", '');
-  const { data: movements } = useQuery(
+  const { data } = useQuery(
     ['movements', { description: descriptionCurrentValue, distinct: "description", orderBy: "description" }], 
     listMovements({ description: descriptionCurrentValue, distinct: "description", orderBy: "description" })
   );
+  const movements = data?.data || [];
 
   const handleNewMovementFormSubmit: SubmitHandler<NewMovementFormData> = async (data) => {
     try {

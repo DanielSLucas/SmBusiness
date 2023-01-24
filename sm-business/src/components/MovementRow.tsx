@@ -1,7 +1,8 @@
+import { forwardRef } from "react";
 import { Flex, Icon, Tag, Td, Text, Tr, useColorModeValue } from "@chakra-ui/react";
 import { FiArrowDownCircle, FiArrowUpCircle, FiCalendar, FiHash } from "react-icons/fi";
-import { toBRL } from "../utils/toBRL";
-import { formatted } from "../utils";
+
+import { formatted, toBRL } from "../utils";
 
 interface Movement {
   id: number;
@@ -16,12 +17,20 @@ interface MovementRowProps {
   movement: Movement;
 }
 
-const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
+const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = ({ 
+  movement 
+}, ref) => {
   const rowBackground = useColorModeValue("white", "#2d3748");
   const boderColor = useColorModeValue('gray.50', 'gray.900');
 
   return (
-    <Tr bg={rowBackground} borderBottomWidth={4} borderColor={boderColor} borderRadius="md">
+    <Tr 
+      ref={ref}
+      bg={rowBackground} 
+      borderBottomWidth={4} 
+      borderColor={boderColor} 
+      borderRadius="md"      
+    >
       {/* TIPO */}
       <Td w="4" display={["none", "none", "none", "block"]} >
         {movement.type === 'INCOME' 
@@ -79,4 +88,4 @@ const MovementRow: React.FC<MovementRowProps> = ({ movement }) => {
   );
 }
 
-export default MovementRow;
+export const MovementRow = forwardRef(MovementRowBase);

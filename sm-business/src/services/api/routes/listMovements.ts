@@ -37,5 +37,5 @@ export interface ListMovementsResponse {
 export function listMovements (filters: Filters) {
   return async () => (
     await api.get<ListMovementsResponse>('/movements', { params: filters })
-  ).data.data
+  ).data
 }
