@@ -127,7 +127,9 @@ export const ImportMovementsModal: React.FC = () => {
               label='Arquivo'
               placeholder="Solte o arquivo aqui, ou clique para seleciona-lo"
               onDragActivePlaceholder="Solte o arquivo aqui..."
-              acceptedFileTypes="text/csv"
+              acceptedFileTypes={{
+                "text/csv": ['.csv']
+              }}
               error={errors.file}
               register={register}
               control={control}              

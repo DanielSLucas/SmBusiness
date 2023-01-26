@@ -9,7 +9,7 @@ interface FileUploadProps {
   error?: FieldError;
   placeholder: string;
   onDragActivePlaceholder: string;
-  acceptedFileTypes: string;
+  acceptedFileTypes: Record<string, string[]>;
   register: UseFormRegister<any>;
   control: Control<any>; 
 }
@@ -32,6 +32,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [file, setFile] = useState({} as File);
 
   const onDrop = ([file]: File[]) => {    
+    if (!file) return;
     field.onChange(file)
     setFile(file);
   };
@@ -41,7 +42,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     setFile({} as File);
   }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop, 
+    accept: acceptedFileTypes,
+    multiple: false,
+  });
   return (
     <FormControl 
       isInvalid={!!error}
@@ -87,19 +92,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         )}
 
         <input 
-          multiple={false}
-          accept={acceptedFileTypes}
           {...getInputProps()}
           {...register("file")}
         />
 
         <Icon as={FiFileText} h="8" w="8" />
         <Text align="center" mt="2">
-          {isDragActive
-            ? onDragActivePlaceholder
-            : !file.name
-            ? placeholder
-            : file.name}
+          
+          {!isDragActive && file.name && file.name}
+          {!isDragActive && !file.name && placeholder}
+          {isDragActive && onDragActivePlaceholder}
         </Text>
       </Flex>
 
