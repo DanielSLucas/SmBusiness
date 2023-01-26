@@ -20,15 +20,22 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
           icon={<FiMenu />}          
         />
         <MenuList>
-          <MenuItem icon={<FiBarChart2 />} onClick={() => router.push('/dashboard')}>
-            Dashboard
-          </MenuItem>
-          <MenuItem icon={<FiDollarSign />} onClick={() => router.push('/')}>
-            Livro Caixa
-          </MenuItem>
-          <MenuItem icon={<FiArrowLeft />} onClick={() => router.back()}>
-            Voltar
-          </MenuItem>
+          {router.pathname !== "/dashboard" && (
+            <MenuItem icon={<FiBarChart2 />} onClick={() => router.push('/dashboard')}>
+              Dashboard
+            </MenuItem>
+          )}
+          {router.pathname !== "/" && (
+            <>
+              <MenuItem icon={<FiDollarSign />} onClick={() => router.push('/')}>
+                Livro Caixa
+              </MenuItem>
+              <MenuItem icon={<FiArrowLeft />} onClick={() => router.back()}>
+                Voltar
+              </MenuItem>
+            </>
+          )}
+          
         </MenuList>
       </Menu>
 
