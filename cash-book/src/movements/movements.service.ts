@@ -1,10 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { createReadStream } from 'fs';
+import { createReadStream, createWriteStream } from 'fs';
 import { unlink } from 'fs/promises';
+import { resolve as pathResolve } from 'node:path';
+import { Readable, Transform, Writable } from 'stream';
+
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { TagsService } from 'src/tags/tags.service';
-import { Transform, Writable } from 'stream';
+import { tempFolder } from 'src/config/multer.config';
 
 import {
   CreateMovementDto,
@@ -21,6 +24,15 @@ import {
 } from './dtos/summary-options.dto';
 import { UpdateMovementDto } from './dtos/update-movement.dto';
 import { Movement, MovementType } from './entities/movement.entity';
+
+export interface HttpMovement {
+  id: number;
+  date: string;
+  description: string;
+  amount: string;
+  type: 'INCOME' | 'OUTCOME';
+  tags: string[];
+}
 
 @Injectable()
 export class MovementsService {
@@ -459,9 +471,7 @@ export class MovementsService {
         : Prisma.empty
     }`;
 
-    console.log(query.values);
-    console.log(query.sql);
-    const data = await this.prisma.$queryRaw(query);
+    const data: HttpMovement[] = await this.prisma.$queryRaw(query);
 
     const [{ total }]: {
       total: number;
@@ -675,6 +685,125 @@ export class MovementsService {
           unlink(file.path)
             .then(() => resolve())
             .catch((err) => reject(err));
+        });
+    });
+  }
+
+  async export(authUserId: string, options?: Partial<FindAllMovementsDto>) {
+    return new Promise(async (resolve, reject) => {
+      const getMovements = async (pg, perPg) => {
+        const response = await this.find(authUserId, {
+          ...options,
+          page: pg,
+          perPage: perPg,
+        });
+
+        return response.data;
+      };
+
+      let page = 1;
+      const perPage = 100;
+
+      const readMovements = new Readable({
+        async read() {
+          while (true) {
+            const movements = await getMovements(page, perPage);
+
+            if (movements.length) {
+              const data = JSON.stringify(movements);
+
+              page++;
+              this.push(data);
+            } else {
+              break;
+            }
+          }
+
+          this.push(null);
+        },
+      });
+
+      const [{ max_tags: maxTags }]: { max_tags: number }[] = await this.prisma
+        .$queryRaw`
+          select
+            max(array_length((
+            select
+              array_agg(mt.tag_id)
+            from
+              movements_tags mt
+            where
+              mt.movement_id = m.id), 1))::int as max_tags
+          from
+            movements m
+          where
+            m.auth_user_id = ${authUserId}
+        `;
+
+      let head: (keyof HttpMovement)[] = [];
+
+      const parseToCsv = new Transform({
+        transform(chunk, enc, cb) {
+          try {
+            const movements: HttpMovement[] = JSON.parse(chunk);
+            const data = [];
+
+            if (!head.length) {
+              const tagsColumns = Array.from({
+                length: maxTags,
+              }).map((_, i) => `tags/${i}` as keyof HttpMovement);
+              head = ['date', 'description', 'type', 'amount', ...tagsColumns];
+              data.push(head.join(','));
+            } else {
+              data.push('');
+            }
+
+            const rows = movements
+              .map((movement) => {
+                const str = [];
+
+                for (const column of head) {
+                  if (column.includes('tags')) {
+                    const [columnName, index] = column.split('/');
+                    const value = movement[columnName][index];
+                    if (value) str.push(value);
+                  } else if (column === 'date') {
+                    str.push(movement[column].split('T')[0]);
+                  } else {
+                    str.push(movement[column]);
+                  }
+                }
+
+                return str.join(',');
+              })
+              .join('\n');
+
+            data.push(rows);
+
+            cb(null, data.join('\n'));
+          } catch (error) {
+            cb(error);
+          }
+        },
+      });
+
+      const fileName = `${Date.now()}_export.csv`;
+      const filePath = pathResolve(tempFolder, fileName);
+      const fileExpirationTime = 1000 * 60 * 1;
+
+      readMovements
+        .pipe(parseToCsv)
+        .pipe(createWriteStream(filePath))
+        .on('error', (err) => reject(err))
+        .on('close', () => {
+          setTimeout(() => {
+            unlink(filePath).catch((err) => console.log(err));
+          }, fileExpirationTime);
+
+          resolve({
+            fileName,
+            downloadPath: `/files/${fileName}`,
+            expiresAt: new Date(Date.now() + fileExpirationTime).toISOString(),
+          });
         });
     });
   }

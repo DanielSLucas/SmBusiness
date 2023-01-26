@@ -43,6 +43,14 @@ export class MovementsController {
     return this.movementsService.import(user.sub, file);
   }
 
+  @Post('/export')
+  exportFile(
+    @CurrentUser() user: AuthUser,
+    @Query() searchOptions?: FindAllMovementsDto,
+  ) {
+    return this.movementsService.export(user.sub, searchOptions);
+  }
+
   @Get('summary')
   summary(
     @CurrentUser() user: AuthUser,
