@@ -98,7 +98,7 @@ export const ImportMovementsModal: React.FC = () => {
               <Code as="span">
                 .tsv
               </Code>
-              {" "}no seguinte formato:
+              {" "}(<i>tab separeted values</i>) no seguinte formato:
             </Text>
             <Code
               as="pre"
@@ -108,9 +108,9 @@ export const ImportMovementsModal: React.FC = () => {
               borderRadius="sm"
               fontSize="sm"
             >
-              date,description,type,amount,tags/0,tags/1{'\n'}
-              2018-01-01,Salário,INCOME,1300.00,CC,TRABALHO{'\n'}
-              2018-01-10,Inglês,OUTCOME,240.00,ESTUDOS{'\n'}
+              date	description	type	amount	tags/0	tags/1{'\n'}
+              2018-01-01	Salário	INCOME	1300.00	CC	TRABALHO{'\n'}
+              2018-01-10	Inglês	OUTCOME	240.00	ESTUDOS{'\n'}
               ...
             </Code>
           </Flex>
