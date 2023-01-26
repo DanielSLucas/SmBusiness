@@ -618,7 +618,7 @@ export class MovementsService {
   }
 
   async import(authUserId: string, file: Express.Multer.File) {
-    if (file.mimetype !== 'text/csv') {
+    if (file.mimetype !== 'text/tsv') {
       unlink(file.path);
       throw new BadRequestException('Invalid file type');
     }
@@ -629,10 +629,10 @@ export class MovementsService {
       const isArrayColumn = (columnName) => /^.+\/\d+$/g.test(columnName);
       let head: string[] = [];
 
-      const parseCsv = new Transform({
+      const parseTsv = new Transform({
         transform(chunk, enc, cb) {
           const data: string = chunk.toString();
-          const rows = data.split('\r\n').map((row) => row.split(','));
+          const rows = data.split('\r\n').map((row) => row.split('\t'));
 
           if (!head.length) {
             head = rows.shift();
@@ -678,7 +678,7 @@ export class MovementsService {
       });
 
       createReadStream(file.path)
-        .pipe(parseCsv)
+        .pipe(parseTsv)
         .pipe(createMovements)
         .on('error', (err) => reject(err))
         .on('close', () => {
@@ -741,7 +741,7 @@ export class MovementsService {
 
       let head: (keyof HttpMovement)[] = [];
 
-      const parseToCsv = new Transform({
+      const parseToTsv = new Transform({
         transform(chunk, enc, cb) {
           try {
             const movements: HttpMovement[] = JSON.parse(chunk);
@@ -752,7 +752,7 @@ export class MovementsService {
                 length: maxTags,
               }).map((_, i) => `tags/${i}` as keyof HttpMovement);
               head = ['date', 'description', 'type', 'amount', ...tagsColumns];
-              data.push(head.join(','));
+              data.push(head.join('\t'));
             } else {
               data.push('');
             }
@@ -773,7 +773,7 @@ export class MovementsService {
                   }
                 }
 
-                return str.join(',');
+                return str.join('\t');
               })
               .join('\n');
 
@@ -786,12 +786,12 @@ export class MovementsService {
         },
       });
 
-      const fileName = `${Date.now()}_export.csv`;
+      const fileName = `${Date.now()}_export.tsv`;
       const filePath = pathResolve(tempFolder, fileName);
       const fileExpirationTime = 1000 * 60 * 1;
 
       readMovements
-        .pipe(parseToCsv)
+        .pipe(parseToTsv)
         .pipe(createWriteStream(filePath))
         .on('error', (err) => reject(err))
         .on('close', () => {

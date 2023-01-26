@@ -26,8 +26,8 @@ import { AxiosError } from 'axios';
 
 const schema = Yup.object({
   file: Yup.mixed()
-    .test("fileType", "O envio de 1 um arquivo no formato '.csv' é obrigatório.", (file: File) => {
-      return [".csv", "text/csv"].includes(file.type)
+    .test("fileType", "O envio de 1 um arquivo no formato '.tsv' é obrigatório.", (file: File) => {
+      return [".tsv", "text/tsv"].includes(file.type)
     })
 })
 
@@ -96,7 +96,7 @@ export const ImportMovementsModal: React.FC = () => {
               Para fazer a importação das movimentações faça o upload de um
               arquivo {" "}
               <Code as="span">
-                .csv
+                .tsv
               </Code>
               {" "}no seguinte formato:
             </Text>
@@ -128,7 +128,7 @@ export const ImportMovementsModal: React.FC = () => {
               placeholder="Solte o arquivo aqui, ou clique para seleciona-lo"
               onDragActivePlaceholder="Solte o arquivo aqui..."
               acceptedFileTypes={{
-                "text/csv": ['.csv']
+                "text/tsv": ['.tsv']
               }}
               error={errors.file}
               register={register}
