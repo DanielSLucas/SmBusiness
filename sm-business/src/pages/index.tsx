@@ -14,6 +14,7 @@ import { NewMovementModal } from "../components/NewMovementModal";
 import { ImportMovementsModal } from "../components/ImportMovementsModal";
 import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
 import { Filters as FiltersData } from "../services/api/routes/listMovements";
+import { ExportMovementsAlertDialog } from "../components/ExportMovementsAlertDialog";
 
 export interface Movement {
   id: number;
@@ -92,6 +93,7 @@ export default function Home() {
 
         <NewMovementModal />
         <ImportMovementsModal />
+        <ExportMovementsAlertDialog filters={filters} />
       </Flex>
     </Flex>
   )

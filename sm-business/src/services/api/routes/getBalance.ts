@@ -2,7 +2,7 @@ import { api } from "..";
 
 type MovementColumns = 'id' | 'date' | 'description' | 'amount' | 'type';
 
-export interface Filters {  
+export interface GetBalanceFilters {  
   date?: Date;
   startDate?: Date;
   endDate?: Date;
@@ -17,7 +17,7 @@ export interface Balance {
   total: string
 }
 
-export function getBalance (filters: Filters) {
+export function getBalance (filters: GetBalanceFilters) {
   return async () => (
     await api.get<Balance>('/movements/balance', { params: filters })
   ).data

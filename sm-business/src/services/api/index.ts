@@ -9,7 +9,7 @@ import { listMovements } from "./routes/listMovements";
 
 function setupApi() {
   const apiInstance = axios.create({
-    baseURL: 'http://localhost:3333',    
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,    
   });
 
   apiInstance.interceptors.request.use(async (request) => {
