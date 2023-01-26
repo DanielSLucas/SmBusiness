@@ -28,6 +28,7 @@ export const FiltersForm: React.FC<FiltersFormProps> = ({
   canCreateTags,
   showGroupByFilter,
 }) => {
+  
   return (
     <Flex 
       as="form" 
@@ -43,10 +44,11 @@ export const FiltersForm: React.FC<FiltersFormProps> = ({
           placeholder="Selecionar campo"
           name="groupBy"
           register={register}
+          defaultValue="year"        
         >
           <option value="day">Dia</option>
           <option value="month">Mês</option>
-          <option value="year" selected >Ano</option>
+          <option value="year">Ano</option>
           <option value="tags">Tags</option>
         </Select>
       )}
