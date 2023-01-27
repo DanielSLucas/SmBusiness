@@ -19,13 +19,20 @@ export class TagsService {
     return this.prisma.tag.findMany();
   }
 
-  findAllNames() {
-    return this.prisma.tag.findMany({
-      select: {
-        id: true,
-        name: true,
-      },
-    });
+  findAllTagNamesFromUser(authUserId: string) {
+    return this.prisma.$queryRaw`
+      SELECT DISTINCT ON (t.name)
+        t.id,
+        t.name
+      FROM
+        movements m
+      INNER JOIN movements_tags mt ON
+        mt.movement_id = m.id
+      INNER JOIN tags t ON
+        mt.tag_id = t.id
+      WHERE
+        m.auth_user_id = ${authUserId}
+    `;
   }
 
   findOne(id: string) {

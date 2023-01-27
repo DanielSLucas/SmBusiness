@@ -10,6 +10,7 @@ import {
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
+import { AuthUser, CurrentUser } from 'src/auth/current-user';
 
 @Controller('tags')
 export class TagsController {
@@ -26,8 +27,8 @@ export class TagsController {
   }
 
   @Get('names')
-  findAllNames() {
-    return this.tagsService.findAllNames();
+  findAllNames(@CurrentUser() user: AuthUser) {
+    return this.tagsService.findAllTagNamesFromUser(user.sub);
   }
 
   @Get(':id')
