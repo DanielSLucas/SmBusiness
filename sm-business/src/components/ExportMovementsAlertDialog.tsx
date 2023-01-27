@@ -10,13 +10,13 @@ import {
   Button,
   useToast,
 } from "@chakra-ui/react";
-
-import { useExportMovementsAlertDialog } from "../hooks/useExportMovementsAlertDialog";
-import { Filters } from "../services/api/routes/listMovements";
-import { useMutation } from "react-query";
-import { exportMovements } from "../services/api/routes/exportMovements";
 import { AxiosError } from "axios";
 import { useRouter } from "next/router";
+import { useMutation } from "react-query";
+
+import { Filters } from "../services/api/routes/listMovements";
+import { exportMovements } from "../services/api/routes/exportMovements";
+import { useGlobalDisclosure } from "../hooks/useGlobalDisclosure";
 
 interface ExportMovementsAlertDialogProps {
   filters: Partial<Filters>
@@ -27,7 +27,7 @@ export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProp
 }) => {
   const toast = useToast();
   const router = useRouter();
-  const { isOpen, onClose } = useExportMovementsAlertDialog();
+  const { isOpen, onClose } = useGlobalDisclosure("exportMovementsAlertDialog");
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const { mutateAsync } = useMutation(exportMovements);

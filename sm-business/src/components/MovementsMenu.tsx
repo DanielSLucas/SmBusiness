@@ -1,14 +1,12 @@
 import { IconButton, Menu, MenuButton, MenuGroup, MenuItem, MenuList } from "@chakra-ui/react";
 import { FiDownload, FiMoreHorizontal, FiPlus, FiUpload } from "react-icons/fi";
 
-import { useExportMovementsAlertDialog } from "../hooks/useExportMovementsAlertDialog";
-import { useImportMovementsModal } from "../hooks/useImportMovementsModal";
-import { useNewMovementModal } from "../hooks/useNewMovementModal";
+import { useGlobalDisclosure } from "../hooks/useGlobalDisclosure";
 
 export const MovementsMenu: React.FC = () => {  
-  const { onOpen: onOpenNewMovementModalOpen } = useNewMovementModal();
-  const { onOpen: onOpenImportMovementsModalOpen } = useImportMovementsModal();
-  const { onOpen: onOpenExportMovementsAlertDialog } = useExportMovementsAlertDialog();  
+  const { onOpen: onOpenNewMovementModalOpen } = useGlobalDisclosure("newMovementModal");
+  const { onOpen: onOpenImportMovementsModalOpen } = useGlobalDisclosure("importMovementsModal");
+  const { onOpen: onOpenExportMovementsAlertDialog } = useGlobalDisclosure("exportMovementsAlertDialog");
 
   return (
     <Menu placement="bottom-end">

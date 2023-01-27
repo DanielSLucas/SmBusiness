@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
-import { ExportMovementsAlertDialogProvider } from "./useExportMovementsAlertDialog";
-import { ImportMovementsModalProvider } from "./useImportMovementsModal";
-import { NewMovementModalProvider } from "./useNewMovementModal";
+
+import { GlobalDisclosureProvider } from "./useGlobalDisclosure";
 import { TagsProvider } from "./useTags";
 
 interface AppProviderProps {
@@ -11,13 +10,9 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps>  = ({ children }) => {
   return (
     <TagsProvider>
-      <NewMovementModalProvider>
-        <ImportMovementsModalProvider>
-          <ExportMovementsAlertDialogProvider>
-            {children}
-          </ExportMovementsAlertDialogProvider>
-        </ImportMovementsModalProvider>
-      </NewMovementModalProvider>
+      <GlobalDisclosureProvider>
+        {children}
+      </GlobalDisclosureProvider>
     </TagsProvider>
   )
 }

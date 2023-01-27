@@ -13,11 +13,11 @@ import { useMutation } from "react-query";
 
 import { queryClient } from "../services/queryClient";
 import { createMovement } from "../services/api";
-import { useNewMovementModal } from "../hooks/useNewMovementModal";
 import { MovementForm, MovementFormData } from "./MovementForm";
+import { useGlobalDisclosure } from "../hooks/useGlobalDisclosure";
 
 export const NewMovementModal: React.FC = () => {
-  const { isOpen, onClose } = useNewMovementModal();
+  const { isOpen, onClose } = useGlobalDisclosure("newMovementModal");
   
   const router = useRouter();
   const toast = useToast();

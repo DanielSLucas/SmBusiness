@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Modal,
   ModalOverlay,
@@ -13,16 +12,16 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import * as Yup from "yup";
-
-import { useImportMovementsModal } from '../hooks/useImportMovementsModal';
-import { FileUpload } from './Inputs/FileUpload';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { importMovements } from '../services/api/routes/importMovements';
 import { useMutation } from 'react-query';
-import { queryClient } from '../services/queryClient';
 import { useRouter } from 'next/router';
 import { AxiosError } from 'axios';
+import * as Yup from "yup";
+
+import { FileUpload } from './Inputs/FileUpload';
+import { importMovements } from '../services/api/routes/importMovements';
+import { queryClient } from '../services/queryClient';
+import { useGlobalDisclosure } from '../hooks/useGlobalDisclosure';
 
 const schema = Yup.object({
   file: Yup.mixed()
@@ -37,7 +36,7 @@ export const ImportMovementsModal: React.FC = () => {
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<{ file: File }>({
     resolver: yupResolver(schema),
   });
-  const { onClose, isOpen } = useImportMovementsModal();
+  const { onClose, isOpen } = useGlobalDisclosure("importMovementsModal");
   const { mutateAsync } = useMutation(importMovements, {
     onSuccess: () => {
       queryClient.invalidateQueries('movements')
