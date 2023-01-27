@@ -20,7 +20,7 @@ export const MovementsMenu: React.FC = () => {
         size={{ base: "xs", md: "sm"}}
       />
       <MenuList>
-        <MenuGroup title="Movimentações">
+        <MenuGroup title="Movimentações" textAlign="start">
           <MenuItem icon={<FiPlus />} onClick={onOpenNewMovementModalOpen}>
             Nova
           </MenuItem>
