@@ -96,13 +96,13 @@ export const MovementsTable: React.FC<MovementsTableProps> = ({
                 <TableSkeletonRow 
                   key={`skeleton-row-${i}`}
                   height="16"
-                  colSpan={6}
+                  colSpan={7}
                 />
               ))
             }
             {isFetching && (
               <Tr>
-                <Td colSpan={6} textAlign="center">
+                <Td colSpan={7} textAlign="center">
                   <Spinner />
                 </Td>
               </Tr>
