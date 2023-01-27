@@ -1,4 +1,4 @@
-import { IconButton, Menu, MenuButton, MenuGroup, MenuItem, MenuList } from "@chakra-ui/react";
+import { IconButton, Menu, MenuButton, MenuGroup, MenuItem, MenuList, useBreakpointValue } from "@chakra-ui/react";
 import { FiDownload, FiMoreHorizontal, FiPlus, FiUpload } from "react-icons/fi";
 
 import { useGlobalDisclosure } from "../hooks/useGlobalDisclosure";
@@ -8,6 +8,8 @@ export const MovementsMenu: React.FC = () => {
   const { onOpen: onOpenImportMovementsModalOpen } = useGlobalDisclosure("importMovementsModal");
   const { onOpen: onOpenExportMovementsAlertDialog } = useGlobalDisclosure("exportMovementsAlertDialog");
 
+  const menuButtonSize = useBreakpointValue({ base: "xs", md: "sm"});
+
   return (
     <Menu placement="bottom-end">
       <MenuButton
@@ -15,7 +17,7 @@ export const MovementsMenu: React.FC = () => {
         icon={<FiMoreHorizontal />}
         aria-label='Mais opções'        
         colorScheme="yellow"
-        size={{ base: "xs", md: "sm"}}
+        size={menuButtonSize}
       />
       <MenuList>
         <MenuGroup title="Movimentações" textAlign="start">
