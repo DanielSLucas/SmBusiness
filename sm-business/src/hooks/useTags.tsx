@@ -20,7 +20,7 @@ interface TagsProviderProps {
 }
 
 export const TagsProvider: React.FC<TagsProviderProps> = ({ children }) => {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [tags, setTags] = useState<Tag[]>([]);
 
   useEffect(() => {
