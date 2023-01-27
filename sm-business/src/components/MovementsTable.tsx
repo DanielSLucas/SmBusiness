@@ -66,21 +66,22 @@ export const MovementsTable: React.FC<MovementsTableProps> = ({
 
   return (
     <Box w="100%" position="relative">
-      <MovementsMenu />
+      
       <TableContainer w="100%" h={{ base: "51vh", lg: "57.2vh" }} overflowY="scroll" >
-        <Table variant="unstyled">
+        <Table variant="unstyled" size={{ base: 'sm', md: "md", lg: "lg" }}>
           <TableCaption>Movimentações</TableCaption>
           <Thead position="sticky" top={0}  zIndex={1} bg={headColor}>
             <Tr>
-              <Th w="4" fontSize="md" display={{ base: "none", lg: "block" }}>
+              <Th w="4" fontSize="md" display={{ base: "none", lg: "table-cell" }}>
                 Tipo
               </Th>
               <Th colSpan={2} fontSize="md">Descrição</Th>
-              <Th colSpan={2} fontSize="md" display={["none", "block"]}>
+              <Th colSpan={2} fontSize="md" display={["none", "table-cell"]}>
                 Tags
               </Th>
               <Th fontSize="md">Valor</Th>
-            </Tr>    
+              <Th textAlign="end"><MovementsMenu /></Th>
+            </Tr>
           </Thead>
           <Tbody>
             {movements.length

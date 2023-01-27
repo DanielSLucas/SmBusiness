@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
-import { Flex, Icon, Tag, Td, Text, Tr, useColorModeValue } from "@chakra-ui/react";
-import { FiArrowDownCircle, FiArrowUpCircle, FiCalendar, FiHash } from "react-icons/fi";
+import { Flex, Icon, IconButton, Tag, Td, Text, Tr, useBreakpointValue, useColorModeValue } from "@chakra-ui/react";
+import { FiArrowDownCircle, FiArrowUpCircle, FiCalendar, FiEdit3, FiHash, FiTrash2 } from "react-icons/fi";
 
 import { formatted, toBRL } from "../utils";
 
@@ -22,6 +22,7 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
 }, ref) => {
   const rowBackground = useColorModeValue("white", "#2d3748");
   const boderColor = useColorModeValue('gray.50', 'gray.900');
+  const iconButtonSize = useBreakpointValue({ base: "sm", md: "md" });
 
   return (
     <Tr 
@@ -32,7 +33,7 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
       borderRadius="md"      
     >
       {/* TIPO */}
-      <Td w="4" display={["none", "none", "none", "block"]} >
+      <Td w="4" display={{base: "none", lg: "table-cell"}}   >
         {movement.type === 'INCOME' 
           ? <Icon as={FiArrowUpCircle} color="green.400" fontSize="2xl" aria-label="Entrada"/>
           : <Icon as={FiArrowDownCircle} color="red.400" fontSize="2xl" aria-label="Saída"/> 
@@ -45,7 +46,7 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
           <Text 
             aria-label={movement.description}
             fontWeight="semibold" 
-            fontSize="xl" 
+            fontSize={{base: "lg", lg: "xl"}}
             overflow="hidden" 
             textOverflow="ellipsis" 
             maxW={['24', '28', '36', '48']}
@@ -67,7 +68,7 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
       </Td>
 
       {/* TAGS */}
-      <Td colSpan={2} display={["none", "block"]}>
+      <Td colSpan={2} display={["none", "table-cell"]}>
         <Flex flexWrap="wrap" gap="2">
           {movement.tags.map((tag, i) => (
             <Tag key={`movementRow_tag_${tag}_#${i}`} size="sm">
@@ -83,6 +84,24 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
           {movement.type === 'OUTCOME' && '-'}
           {toBRL(movement.amount)}
         </Text>
+      </Td>
+
+      {/* AÇÕES */}
+      <Td textAlign="end">
+        <Flex flexWrap="wrap" gap="2" justifyContent="flex-end">
+          <IconButton
+            size={iconButtonSize}
+            aria-label="editar" 
+            icon={<FiEdit3 />} 
+            variant="outline"
+          />
+          <IconButton 
+            size={iconButtonSize}
+            aria-label="excluir" 
+            icon={<FiTrash2 />} 
+            variant="outline"
+          />
+        </Flex>
       </Td>
     </Tr>
   );

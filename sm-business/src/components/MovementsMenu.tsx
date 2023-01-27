@@ -8,7 +8,7 @@ import { useNewMovementModal } from "../hooks/useNewMovementModal";
 export const MovementsMenu: React.FC = () => {  
   const { onOpen: onOpenNewMovementModalOpen } = useNewMovementModal();
   const { onOpen: onOpenImportMovementsModalOpen } = useImportMovementsModal();
-  const { onOpen: onOpenExportMovementsAlertDialog } = useExportMovementsAlertDialog();
+  const { onOpen: onOpenExportMovementsAlertDialog } = useExportMovementsAlertDialog();  
 
   return (
     <Menu placement="bottom-end">
@@ -17,11 +17,7 @@ export const MovementsMenu: React.FC = () => {
         icon={<FiMoreHorizontal />}
         aria-label='Mais opções'        
         colorScheme="yellow"
-        size="sm"
-        position="absolute"
-        zIndex={2}
-        right={1}
-        top={1}
+        size={{ base: "xs", md: "sm"}}
       />
       <MenuList>
         <MenuGroup title="Movimentações">
