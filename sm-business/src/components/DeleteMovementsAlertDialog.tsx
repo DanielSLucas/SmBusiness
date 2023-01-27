@@ -14,42 +14,36 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/router";
 import { useMutation } from "react-query";
 
-import { Filters } from "../services/api/routes/listMovements";
-import { exportMovements } from "../services/api/routes/exportMovements";
-import { useGlobalDisclosure } from "../hooks/useGlobalDisclosure";
+import { deleteMovement } from "../services/api/";
+import { Movement } from "../pages";
 
-interface ExportMovementsAlertDialogProps {
-  filters: Partial<Filters>
+interface DeleteMovementAlertDialogProps {
+  movement: Movement;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProps> = ({
-  filters
+export const DeleteMovementAlertDialog: React.FC<DeleteMovementAlertDialogProps> = ({
+  movement,
+  isOpen,
+  onClose,
 }) => {
   const toast = useToast();
   const router = useRouter();
-  const { isOpen, onClose } = useGlobalDisclosure("exportMovementsAlertDialog");
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const { mutateAsync } = useMutation(exportMovements);
+  const { mutateAsync } = useMutation(deleteMovement);
 
-  async function handleExport (withFilters: boolean) {
+  async function handleDelete (id: number) {
     try {
-      const response = await mutateAsync(withFilters ? filters : {});
-    
-      const downloadAnchor = document.createElement('a');
-      
-      downloadAnchor.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}${response.downloadPath}`;
-      downloadAnchor.download = response.fileName;
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      document.body.removeChild(downloadAnchor);
+      await mutateAsync(id);
 
       toast({
-        title: "Movimentos de caixa exportados com sucesso!",
+        title: "Movimento excluído com sucesso!",
         duration: 2500,
         position: "top",
         status: "success"
-      });      
+      });
     } catch (error) {
       if ((error as AxiosError).response?.status === 401) {
         toast({
@@ -67,7 +61,7 @@ export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProp
         console.log(error);
 
         toast({
-          title: "Erro ao importar movimentos de caixa.",
+          title: "Erro ao excluir movimento de caixa.",
           description: (error as Error).message,              
           status: "error",
           position: "top",
@@ -89,17 +83,18 @@ export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProp
       <AlertDialogOverlay />
 
       <AlertDialogContent>
-        <AlertDialogHeader>Exportar tudo?</AlertDialogHeader>
+        <AlertDialogHeader>Excluir Movimentação</AlertDialogHeader>
         <AlertDialogCloseButton />
         <AlertDialogBody>
-          Exportar movimentações com os filtros aplicados ou exportar tudo?
+          Tem certeza que deseja excluir o movimento de caixa:{'\n'}
+          {`"${movement.description}"`} ?
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button ref={cancelRef} onClick={() => handleExport(false)}>
-            Exportar tudo
+          <Button ref={cancelRef} onClick={() => onClose()}>
+            Cancelar
           </Button>
-          <Button colorScheme='blue' ml={3} onClick={() => handleExport(true)}>
-            Exportar com filtros aplicados
+          <Button colorScheme='red' ml={3} onClick={() => handleDelete(movement.id)}>
+            Exluir
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
