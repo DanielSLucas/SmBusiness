@@ -142,7 +142,7 @@ export const MovementForm: React.FC<MovementFormProps> = ({ onSubmit, defaultVal
       />
 
       <Button isLoading={isSubmitting} mt="2" type="submit">
-        Criar
+        Enviar
       </Button>
     </Flex>
   );
