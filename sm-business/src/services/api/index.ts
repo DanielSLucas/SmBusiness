@@ -2,10 +2,12 @@ import axios from "axios";
 import { getSession } from "next-auth/react";
 
 import { createMovement } from "./routes/createMovement";
+import { deleteMovement } from "./routes/deleteMovement";
 import { getBalance } from "./routes/getBalance";
 import { getSummarizedMovements } from "./routes/getSummarizedMovements";
 import { getTags } from "./routes/getTags";
 import { listMovements } from "./routes/listMovements";
+import { updateMovement } from "./routes/updateMovement";
 
 function setupApi() {
   const apiInstance = axios.create({
@@ -35,5 +37,7 @@ export {
   listMovements,
   getSummarizedMovements,  
   getTags,
-  getBalance
+  getBalance,
+  updateMovement,
+  deleteMovement,
 }
