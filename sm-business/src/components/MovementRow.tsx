@@ -15,6 +15,7 @@ import {
 
 import { formatted, toBRL } from "../utils";
 import { DeleteMovementAlertDialog } from "./DeleteMovementsAlertDialog";
+import { EditMovementModal } from "./EditMovementModal";
 
 interface Movement {
   id: number;
@@ -36,6 +37,12 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
     isOpen: isDeleteMovementAlertDialogOpen, 
     onClose: onDeleteMovementAlertDialogClose,
     onOpen: onDeleteMovementAlertDialogOpen,
+  } = useDisclosure();
+
+  const { 
+    isOpen: isEditMovementModalOpen, 
+    onClose: onEditMovementModalClose,
+    onOpen: onEditMovementModalOpen,
   } = useDisclosure();
 
   const rowBackground = useColorModeValue("white", "#2d3748");
@@ -113,7 +120,7 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
               aria-label="editar" 
               icon={<FiEdit3 />} 
               variant="outline"
-              onClick={() => {}}
+              onClick={() => onEditMovementModalOpen()}
             />
             <IconButton 
               size={iconButtonSize}
@@ -126,6 +133,12 @@ const MovementRowBase: React.ForwardRefRenderFunction<any, MovementRowProps> = (
         </Td>
       </Tr>
 
+      <EditMovementModal 
+        isOpen={isEditMovementModalOpen}
+        onClose={onEditMovementModalClose}
+        movement={movement}
+      />
+      
       <DeleteMovementAlertDialog 
         isOpen={isDeleteMovementAlertDialogOpen}
         onClose={onDeleteMovementAlertDialogClose}

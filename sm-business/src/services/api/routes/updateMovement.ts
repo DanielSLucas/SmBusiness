@@ -8,7 +8,12 @@ export interface MovementData {
   tags: string;
 }
 
-export async function updateMovement(id: number, data: MovementData): Promise<void> {
+type UpdateMovementPayload = {
+  id: number, 
+  data: MovementData
+}
+
+export async function updateMovement({ id, data }: UpdateMovementPayload): Promise<void> {
   const movementData = {
     ...data,
     tags: data.tags.split(';')
