@@ -44,7 +44,8 @@ export const ImportMovementsModal: React.FC = () => {
   const { onClose, isOpen } = useGlobalDisclosure("importMovementsModal");
   const { mutateAsync } = useMutation(importMovements, {
     onSuccess: () => {
-      queryClient.invalidateQueries('movements')
+      queryClient.invalidateQueries('movements');
+      queryClient.invalidateQueries('movements/balance');
     }
   })
 

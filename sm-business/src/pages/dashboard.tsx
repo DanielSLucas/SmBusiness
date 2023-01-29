@@ -1,6 +1,6 @@
 import { Box, Flex, useColorModeValue } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "react-query";
 
 import { CustomTable } from "../components/CustomTable";
@@ -10,8 +10,7 @@ import { useApiErrorToasts } from "../hooks/useApiErrorToasts";
 import { getSummarizedMovements } from "../services/api";
 import { MovementsSummaryParams } from "../services/api/routes/getSummarizedMovements";
 import { queryClient } from "../services/queryClient";
-import { currencyToNumber } from "../utils/currencyToNumber";
-import { toBRL } from "../utils/toBRL";
+import { toBRL, currencyToNumber } from "../utils";
 
 const ReactApexChart = dynamic(() => import('react-apexcharts'), {
   ssr: false,
@@ -21,7 +20,7 @@ export default function Dashboard() {
   const [filters, setFilters] = useState<MovementsSummaryParams>({
     groupBy: 'year'
   });
-  const { data, error, isLoading } = useQuery(
+  const { data: summarizedMovements, error, isLoading } = useQuery(
     ["summarizedMovements", filters], getSummarizedMovements(filters) 
   );
   const tooltipTheme = useColorModeValue('light', 'dark');
@@ -31,6 +30,32 @@ export default function Dashboard() {
     setFilters(receivedFilters);    
     queryClient.fetchQuery(["summarizedMovements", filters], getSummarizedMovements(filters));    
   }
+
+  const data = useMemo(() => {
+    if (!summarizedMovements) return [];
+
+    const balance = summarizedMovements.reduce((acc, cur) => {
+      acc.income += currencyToNumber(cur.income);
+      acc.outcome += currencyToNumber(cur.outcome);
+      acc.total += currencyToNumber(cur.total);
+      return acc;
+    }, {      
+      income: 0,
+      outcome: 0,
+      total: 0,
+    });
+
+    return [
+      ...summarizedMovements,
+      {
+        id: "Total",
+        group: "Total",
+        income: toBRL(balance.income.toString()),
+        outcome: toBRL(balance.outcome.toString()),
+        total: toBRL(balance.total.toString()),
+      }
+    ];
+  }, [summarizedMovements])
 
   return (
     <Flex
@@ -122,7 +147,7 @@ export default function Dashboard() {
             columnName: "Total",
             colSpan: 1,            
           }]}
-          data={data ?? []}
+          data={data}
         />
        </Box>
 

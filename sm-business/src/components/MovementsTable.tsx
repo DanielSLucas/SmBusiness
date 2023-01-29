@@ -92,21 +92,21 @@ export const MovementsTable: React.FC<MovementsTableProps> = ({
               />
             )) : ''}
             {!movements.length && isFetching 
-              ? Array.from({ length: 9 }).map((_, i) => (
-                  <TableSkeletonRow 
-                    key={`skeleton-row-${i}`}
-                    height="16"
-                    colSpan={7}
-                  />
-                ))
-              : (
-                <Tr>
-                  <Td colSpan={7} textAlign="center">
-                    Não foram encontrados movimentos {"=("}
-                  </Td>
-                </Tr>
-              )
+              && Array.from({ length: 9 }).map((_, i) => (
+                <TableSkeletonRow 
+                  key={`skeleton-row-${i}`}
+                  height="16"
+                  colSpan={7}
+                />
+              ))
             }
+            {!movements.length && !isFetching && (
+              <Tr>
+                <Td colSpan={7} textAlign="center">
+                  Não foram encontrados movimentos {"=("}
+                </Td>
+              </Tr>
+            )}
             {isFetching && (
               <Tr>
                 <Td colSpan={7} textAlign="center">
