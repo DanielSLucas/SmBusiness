@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createReadStream, createWriteStream } from 'fs';
 import { unlink } from 'fs/promises';
@@ -248,6 +252,47 @@ export class MovementsService {
   }
 
   async remove(id: number) {
+    const movementTags = await this.prisma.movementTag.findMany({
+      select: {
+        tagId: true,
+      },
+      where: {
+        movementId: id,
+      },
+    });
+    const movementTagsIds = movementTags.map((mvtg) => mvtg.tagId);
+
+    // verificar se a(s) tag(s) do movimento não é/são utilizada(s) em nenhum outro movimento
+    const movementsWithSameTags = await this.prisma.movementTag.findMany({
+      select: {
+        id: true,
+      },
+      where: {
+        tagId: {
+          in: movementTagsIds,
+        },
+      },
+    });
+
+    // se não for/forem utilizada(s) por outros movimentos excluir a(s) tag(s)
+    if (!movementsWithSameTags.length) {
+      this.prisma.tag.deleteMany({
+        where: {
+          id: {
+            in: movementTagsIds,
+          },
+        },
+      });
+    }
+
+    // deletar as movement_tags relacionadas ao movimento
+    await this.prisma.movementTag.deleteMany({
+      where: {
+        movementId: id,
+      },
+    });
+
+    // deletar o movimento
     return this.prisma.movement.delete({
       where: {
         id,
