@@ -5,7 +5,7 @@ import {
   TableCaption,
   TableContainer,
   Tbody,
-  Td,
+  Td,  
   Th,
   Thead,
   Tr,
@@ -84,21 +84,28 @@ export const MovementsTable: React.FC<MovementsTableProps> = ({
             </Tr>
           </Thead>
           <Tbody>
-            {movements.length
-              ? movements.map((movement, i) => (
-                <MovementRow
-                  key={movement.id}
-                  movement={movement}
-                  {...(movements.length === i + 1 && { ref: currentLastRowRef })}
-                />
-              )) 
-              : Array.from({ length: 9 }).map((_, i) => (
-                <TableSkeletonRow 
-                  key={`skeleton-row-${i}`}
-                  height="16"
-                  colSpan={7}
-                />
-              ))
+            {movements.length ? movements.map((movement, i) => (
+              <MovementRow
+                key={movement.id}
+                movement={movement}
+                {...(movements.length === i + 1 && { ref: currentLastRowRef })}
+              />
+            )) : ''}
+            {!movements.length && isFetching 
+              ? Array.from({ length: 9 }).map((_, i) => (
+                  <TableSkeletonRow 
+                    key={`skeleton-row-${i}`}
+                    height="16"
+                    colSpan={7}
+                  />
+                ))
+              : (
+                <Tr>
+                  <Td colSpan={7} textAlign="center">
+                    Não foram encontrados movimentos {"=("}
+                  </Td>
+                </Tr>
+              )
             }
             {isFetching && (
               <Tr>

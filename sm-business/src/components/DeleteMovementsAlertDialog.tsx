@@ -16,6 +16,7 @@ import { useMutation } from "react-query";
 
 import { deleteMovement } from "../services/api/";
 import { Movement } from "../pages";
+import { queryClient } from "../services/queryClient";
 
 interface DeleteMovementAlertDialogProps {
   movement: Movement;
@@ -32,7 +33,11 @@ export const DeleteMovementAlertDialog: React.FC<DeleteMovementAlertDialogProps>
   const router = useRouter();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const { mutateAsync } = useMutation(deleteMovement);
+  const { mutateAsync } = useMutation(deleteMovement, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('movements');      
+    }
+  });
 
   async function handleDelete (id: number) {
     try {
