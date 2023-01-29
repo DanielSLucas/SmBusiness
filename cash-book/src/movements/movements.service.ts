@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createReadStream, createWriteStream } from 'fs';
 import { unlink } from 'fs/promises';
@@ -663,7 +659,9 @@ export class MovementsService {
   }
 
   async import(authUserId: string, file: Express.Multer.File) {
-    if (file.mimetype !== 'text/tsv') {
+    const splitedFileName = file.originalname.split('.');
+    const fileExtension = splitedFileName[splitedFileName.length - 1];
+    if (fileExtension !== 'tsv') {
       unlink(file.path);
       throw new BadRequestException('Invalid file type');
     }
@@ -687,7 +685,7 @@ export class MovementsService {
             const obj = {};
 
             head.forEach((column, i) => {
-              const value = row[i];
+              const value = row[i].trim();
               if (!value) return;
 
               if (isArrayColumn(column)) {
@@ -833,7 +831,7 @@ export class MovementsService {
 
       const fileName = `${Date.now()}_export.tsv`;
       const filePath = pathResolve(tempFolder, fileName);
-      const fileExpirationTime = 1000 * 60 * 1;
+      const fileExpirationTime = 1000 * 60 * 5;
 
       readMovements
         .pipe(parseToTsv)

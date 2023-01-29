@@ -26,7 +26,12 @@ import { useGlobalDisclosure } from '../hooks/useGlobalDisclosure';
 const schema = Yup.object({
   file: Yup.mixed()
     .test("fileType", "O envio de 1 um arquivo no formato '.tsv' é obrigatório.", (file: File) => {
-      return [".tsv", "text/tsv"].includes(file.type)
+      if (!file?.name) return false;
+
+      const splitedFileName = file.name.split('.');
+      const fileExtension = "." + splitedFileName[splitedFileName.length - 1];
+      
+      return [".tsv", "text/tsv"].includes(file.type || fileExtension)
     })
 })
 
