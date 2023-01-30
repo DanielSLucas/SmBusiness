@@ -5,7 +5,7 @@ import { useQuery } from "react-query";
 import * as Yup from "yup";
 
 import { useTags } from "../hooks/useTags";
-import { listMovements } from "../services/api";
+import { getMovementsNames } from "../services/api";
 
 import { AutoCompleteInput, AutoCompleteInputOption } from "./Inputs/AutoCompleteInput";
 import { TagInput } from "./Inputs/TagInput";
@@ -54,11 +54,11 @@ export const MovementForm: React.FC<MovementFormProps> = ({ onSubmit, defaultVal
     defaultValues,
   });  
   const descriptionCurrentValue = watch("description", defaultValues?.description || '');
-  const { data } = useQuery(
-    ['movements', { description: descriptionCurrentValue, distinct: "description", orderBy: "description" }], 
-    listMovements({ description: descriptionCurrentValue, distinct: "description", orderBy: "description" })
+  const { data: movements } = useQuery(
+    'movements/names', 
+    getMovementsNames,
+    { staleTime: 1000 * 60 * 10 }
   );
-  const movements = data?.data || [];
 
   function handleAutoCompleteOptionClick(option: AutoCompleteInputOption) {
     if (movements) {
