@@ -75,6 +75,11 @@ export class MovementsController {
     return this.movementsService.find(user.sub, searchOptions);
   }
 
+  @Get('/names')
+  findAllUniqueNames(@CurrentUser() user: AuthUser) {
+    return this.movementsService.findAllMovementNamesFromUser(user.sub);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.movementsService.findOne(+id);

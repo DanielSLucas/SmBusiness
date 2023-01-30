@@ -850,4 +850,28 @@ export class MovementsService {
         });
     });
   }
+
+  async findAllMovementNamesFromUser(authUserId: string) {
+    const dbResponse = await this.prisma.movement.findMany({
+      distinct: ['description'],
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+      where: {
+        authUserId,
+      },
+    });
+
+    return dbResponse.map((item) => ({
+      ...item,
+      tags: item.tags.map((mvTag) => mvTag.tag.name),
+    }));
+  }
 }
