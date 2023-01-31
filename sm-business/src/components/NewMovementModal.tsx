@@ -24,7 +24,8 @@ export const NewMovementModal: React.FC = () => {
 
   const { mutateAsync } = useMutation(createMovement, {
     onSuccess: () => {
-      queryClient.invalidateQueries('movements')
+      queryClient.invalidateQueries('movements');
+      queryClient.invalidateQueries('movements/balance');
     }
   })
 
