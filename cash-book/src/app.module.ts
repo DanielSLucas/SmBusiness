@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 
-import { GoogleAuthGuard } from './auth/googleAuth.guard';
-import { DatabaseModule } from './database/database.module';
-import { MovementsModule } from './movements/movements.module';
-import { TagsModule } from './tags/tags.module';
+import { GoogleAuthGuard } from './shared/auth/googleAuth.guard';
+import { DatabaseModule } from './shared/infra/database/database.module';
+import { MovementsModule } from './modules/movements/movements.module';
+import { HttpModule } from './shared/infra/http/http.module';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import { TagsModule } from './tags/tags.module';
     }),
     DatabaseModule,
     MovementsModule,
-    TagsModule,
+    HttpModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: GoogleAuthGuard }],
 })

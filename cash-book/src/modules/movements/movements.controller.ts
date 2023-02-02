@@ -16,7 +16,7 @@ import {
   CreateMovementsDto,
 } from './dtos/create-movement.dto';
 import { UpdateMovementDto } from './dtos/update-movement.dto';
-import { AuthUser, CurrentUser } from 'src/auth/current-user';
+import { AuthUser, CurrentUser } from 'src/shared/auth/current-user';
 import { FindAllMovementsDto } from './dtos/find-all-movement.dto';
 import { SummaryOptionsDto } from './dtos/summary-options.dto';
 import { FileInterceptor } from '@nestjs/platform-express';

@@ -5,9 +5,9 @@ import { unlink } from 'fs/promises';
 import { resolve as pathResolve } from 'node:path';
 import { Readable, Transform, Writable } from 'stream';
 
-import { PrismaService } from 'src/database/prisma/prisma.service';
-import { TagsService } from 'src/tags/tags.service';
-import { tempFolder } from 'src/config/multer.config';
+import { PrismaService } from '../../shared/infra/database/prisma/prisma.service';
+import { TagsRepository } from '../tags/repositories/tags.repository';
+import { tempFolder } from 'src/shared/config/multer.config';
 
 import {
   CreateMovementDto,
@@ -38,7 +38,7 @@ export interface HttpMovement {
 export class MovementsService {
   constructor(
     private prisma: PrismaService,
-    private tagsService: TagsService,
+    private tagsRepository: TagsRepository,
   ) {}
 
   async create(
@@ -57,7 +57,7 @@ export class MovementsService {
     const date = new Date(createMovementDto.date);
 
     const upsertedTags = await Promise.all(
-      tags.map((tag) => this.tagsService.upsert({ name: tag.toUpperCase() })),
+      tags.map((tag) => this.tagsRepository.upsert(tag.toUpperCase())),
     );
 
     const movement = await this.prisma.movement.create({
@@ -85,9 +85,7 @@ export class MovementsService {
     const upsertedTags = await Promise.all(
       data.map(({ tags }) =>
         Promise.all(
-          tags.map((tag) =>
-            this.tagsService.upsert({ name: tag.toUpperCase() }),
-          ),
+          tags.map((tag) => this.tagsRepository.upsert(tag.toUpperCase())),
         ),
       ),
     );
@@ -226,7 +224,7 @@ export class MovementsService {
 
   async update(id: number, { tags, ...updateMovementDto }: UpdateMovementDto) {
     const upsertedTags = await Promise.all(
-      tags.map((tag) => this.tagsService.upsert({ name: tag.toUpperCase() })),
+      tags.map((tag) => this.tagsRepository.upsert(tag.toUpperCase())),
     );
 
     return this.prisma.movement.update({
