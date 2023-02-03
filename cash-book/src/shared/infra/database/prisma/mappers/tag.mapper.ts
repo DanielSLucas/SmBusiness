@@ -3,9 +3,11 @@ import { Tag as RawTag } from '@prisma/client';
 import { Tag } from '../../../../../modules/tags/entities/tag.entity';
 
 export class PrismaTagMapper {
-  static toPrisma(tag: Tag) {
+  static toPrisma(tag: Partial<Tag>) {
     return {
       name: tag.name,
+      createdAt: tag.createdAt,
+      updatedAt: tag.updatedAt,
     };
   }
 

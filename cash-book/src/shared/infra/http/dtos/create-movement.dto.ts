@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { MovementType } from '../entities/movement.entity';
+import { MovementType } from '../../../../modules/movements/entities/movement.entity';
 
 export class CreateMovementDto {
   @IsNotEmpty()
