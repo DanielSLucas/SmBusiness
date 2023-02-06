@@ -48,7 +48,6 @@ export const Filters: React.FC<FiltersProps> = ({
   const { tags } = useTags();
     
   const onSubmit: SubmitHandler<FiltersData> = (data) => {
-    console.log(data)
     const filters = Object.keys(data).reduce((prev, curr) => {
       const key = curr as keyof FiltersData;
 

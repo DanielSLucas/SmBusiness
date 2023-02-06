@@ -101,7 +101,6 @@ export default function Home() {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const session = await getSession(ctx);
-  console.log(session, new Date().toISOString());
 
   if (!session) {
     return {
