@@ -11,9 +11,11 @@ services:
       - POSTGRESQL_USERNAME=docker
       - POSTGRESQL_PASSWORD=docker
       - POSTGRESQL_DATABASE=app
+    volumes:
+      - $PWD/data/pg:/bitnami/postgresql    
 
   cash-book:    
-    build: .
+    build: ./cash-book
     container_name: cash-book
     ports:
       - 3333:3333
@@ -21,3 +23,13 @@ services:
       - ./cash-book:/usr/app
     depends_on:
       - database
+
+  sm-business:
+    build: ./sm-business
+    container_name: sm-business
+    ports:
+      - 3000:3000
+    volumes:
+      - ./sm-business:/usr/app
+    depends_on:
+      - cash-book

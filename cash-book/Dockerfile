@@ -2,15 +2,15 @@ FROM ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
 
 WORKDIR /usr/app
 
-COPY ./cash-book/package.json ./
+COPY ./package.json ./
 
-COPY ./cash-book/package-lock.json ./
+COPY ./package-lock.json ./
 
 RUN npm install -g npm
 
 RUN npm ci
 
-COPY ./cash-book/ .
+COPY . .
 
 EXPOSE 3333
 
