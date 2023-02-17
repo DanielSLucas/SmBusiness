@@ -37,8 +37,9 @@ export class ImportMovements {
             const obj = {};
 
             head.forEach((column, i) => {
-              const value = row[i].trim();
+              let value = row[i];
               if (!value) return;
+              value = value.trim();
 
               if (isArrayColumn(column)) {
                 const [columnName] = column.split('/');
