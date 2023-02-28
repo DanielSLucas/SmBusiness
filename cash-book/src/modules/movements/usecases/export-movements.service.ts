@@ -29,24 +29,18 @@ export class ExportMovements {
       let page = 1;
       const perPage = 100;
 
-      const readMovements = new Readable({
-        async read() {
-          while (true) {
-            const movements = await getMovements(page, perPage);
+      async function* readMovements() {
+        while (true) {
+          const movements = await getMovements(page, perPage);
 
-            if (movements.length) {
-              const data = JSON.stringify(movements);
+          if (!movements.length) break;
 
-              page++;
-              this.push(data);
-            } else {
-              break;
-            }
-          }
+          const data = JSON.stringify(movements);
 
-          this.push(null);
-        },
-      });
+          page++;
+          yield data;
+        }
+      }
 
       const maxTags = await this.movementsRepository.maxTagsPerMovement(
         authUserId,
@@ -105,7 +99,7 @@ export class ExportMovements {
       const filePath = pathResolve(tempFolder, fileName);
       const fileExpirationTime = 1000 * 60 * 5;
 
-      readMovements
+      Readable.from(readMovements())
         .pipe(parseToTsv)
         .pipe(createWriteStream(filePath))
         .on('error', (err) => reject(err))
