@@ -82,7 +82,7 @@ export const EditMovementModal: React.FC<EditMovementModalProps> = ({
     <Modal onClose={onClose} isOpen={isOpen} isCentered>
       <ModalOverlay />
       <ModalContent display="flex" justifyContent="flex-end">
-        <ModalHeader>Nova movimentação</ModalHeader>
+        <ModalHeader>Editar movimentação</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb="6">
           <MovementForm 
