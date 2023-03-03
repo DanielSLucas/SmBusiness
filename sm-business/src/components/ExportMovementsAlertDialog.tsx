@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { 
   AlertDialog,
   AlertDialogBody,
@@ -29,11 +29,14 @@ export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProp
   const router = useRouter();
   const { isOpen, onClose } = useGlobalDisclosure("exportMovementsAlertDialog");
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const [isExportingWithFilters, setIsExportingWithFilters] = useState(false);
+  const [isExportingWithoutFilters, setIsExportingWithoutFilters] = useState(false);
 
-  const { mutateAsync } = useMutation(exportMovements);
+  const { mutateAsync, isLoading } = useMutation(exportMovements);
 
   async function handleExport (withFilters: boolean) {
     try {
+      withFilters ? setIsExportingWithFilters(true) : setIsExportingWithoutFilters(true);
       const response = await mutateAsync(withFilters ? filters : {});
     
       const downloadAnchor = document.createElement('a');
@@ -75,6 +78,7 @@ export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProp
         });
       }
     } finally {
+      withFilters ? setIsExportingWithFilters(false) : setIsExportingWithoutFilters(false);
       onClose();
     }
   }
@@ -95,10 +99,21 @@ export const ExportMovementsAlertDialog: React.FC<ExportMovementsAlertDialogProp
           Exportar movimentações com os filtros aplicados ou exportar tudo?
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button ref={cancelRef} onClick={() => handleExport(false)}>
+          <Button 
+            ref={cancelRef} 
+            onClick={() => handleExport(false)}
+            disabled={isLoading}
+            isLoading={isExportingWithoutFilters}
+          >
             Exportar tudo
           </Button>
-          <Button colorScheme='blue' ml={3} onClick={() => handleExport(true)}>
+          <Button 
+            colorScheme='blue' 
+            ml={3} 
+            onClick={() => handleExport(true)}
+            disabled={isLoading}
+            isLoading={isExportingWithFilters}
+          >
             Exportar com filtros aplicados
           </Button>
         </AlertDialogFooter>
