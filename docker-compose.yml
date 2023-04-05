@@ -4,7 +4,7 @@ services:
 
   database:
     container_name: postgres_smb
-    image: 'bitnami/postgresql'
+    image: 'bitnami/postgresql:14'
     ports:
       - '5432:5432'
     environment:
