@@ -6,6 +6,7 @@ export default NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      checks: "pkce"
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
@@ -14,7 +15,7 @@ export default NextAuth({
       if(url.url === "/signin") return '/home'
       return '/'
     },
-    async jwt ({ token, account }) {      
+    async jwt ({ token, account,  }) {      
       return {
         ...token,
         ...(account ? { accessToken: account.id_token } : {})
